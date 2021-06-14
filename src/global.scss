@@ -24,3 +24,22 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+
+@import "./app/app.scss";
+
+ion-segment ion-segment-button{
+    text-transform: none;
+    //flex-grow: 0;
+}
+ion-card{
+    border-radius: 0;
+}
+
+ion-item-divider{
+    min-height: 1px !important;
+    margin: 0px;
+}
+
+.grid_head{
+    padding-top: 0;
+}

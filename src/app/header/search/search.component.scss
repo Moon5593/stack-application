@@ -1,0 +1,22 @@
+ion-item{
+    margin-left: 5px;
+    margin-right: 5px;
+    --border-radius: 5px;
+}
+
+ion-item:hover{
+    --background: #6366F1;
+    --color-hover: #EEF2FF;
+    ion-icon{
+        color: #EEF2FF;
+    }
+}
+
+ion-button{
+    --color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.54);
+}
+
+ion-button:hover{
+    --background: #6366F1;
+    --color-hover: #EEF2FF;
+}

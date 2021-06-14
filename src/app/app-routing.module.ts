@@ -1,21 +1,56 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthResolver } from './auth/auth-resolve.service';
+import { AuthGuard } from './auth/auth.guard';
 
 const routes: Routes = [
   {
-    path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+    path: '',
+    redirectTo: '/app/home',
+    pathMatch: 'full',
   },
   {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full'
-  },
+    path: 'app',
+    resolve: [AuthResolver],
+    children: [
+      {
+        path: 'home',
+        loadChildren: () => import('./pages/home-page-detail/home-page-detail.module').then( m => m.HomePageDetailPageModule)
+      },
+      {
+        path: 'home/:questionId',
+        loadChildren: () => import('./pages/question-card/main-qa/main-qa.module').then( m => m.MainQaPageModule)
+      },
+      {
+        path: 'about',
+        loadChildren: () => import('./pages/about/about.module').then( m => m.AboutPageModule)
+      },
+      {
+        path: 'help',
+        loadChildren: () => import('./pages/help/help.module').then( m => m.HelpPageModule)
+      },
+      {
+        path: 'users',
+        loadChildren: () => import('./pages/users/users.module').then( m => m.UsersPageModule),
+        canLoad: [AuthGuard]
+      },
+      {
+        path: 'vip',
+        loadChildren: () => import('./pages/vip/vip.module').then( m => m.VipPageModule),
+        canLoad: [AuthGuard]
+      },
+      {
+        path: 'badges',
+        loadChildren: () => import('./pages/badges/badges.module').then( m => m.BadgesPageModule)
+      }
+    ]
+  }
+
 ];
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    RouterModule.forRoot(routes)
   ],
   exports: [RouterModule]
 })

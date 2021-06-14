@@ -1,0 +1,47 @@
+<ion-card class="ion-text-center question_card hidden-md-down">
+  <ion-button color="primary" (click)="onAskQuestion()">Ask a question</ion-button>
+</ion-card>
+<ion-grid class="block_grid ion-text-center">
+  <ion-row>
+    <ion-col size-md="6">
+      block1
+    </ion-col>
+    <ion-col size-md="6">
+      block2
+    </ion-col>
+  </ion-row>
+
+  <ion-row>
+    <ion-col size-md="6">
+      block3
+    </ion-col>
+    <ion-col size-md="6">
+      block4
+    </ion-col>
+  </ion-row>
+</ion-grid>
+
+<ion-segment class="side-segment">
+  <ion-segment-button value="popular">
+    Popular
+  </ion-segment-button>
+  <ion-segment-button value="answers">
+    Answers
+  </ion-segment-button>
+</ion-segment>
+<ion-card>
+  <ion-card-header>
+    <ion-item lines="none">
+      <ion-icon name="person-add-outline"></ion-icon>
+      <ion-label class="ion-padding-start">Top members</ion-label>
+    </ion-item>
+  </ion-card-header>
+</ion-card>
+<ion-card>
+  <ion-card-header>
+    <ion-item lines="none">
+      <ion-icon name="pricetags-outline"></ion-icon>
+      <ion-label class="ion-padding-start">Trending tags</ion-label>
+    </ion-item>
+  </ion-card-header>
+</ion-card>

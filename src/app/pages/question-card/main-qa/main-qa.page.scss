@@ -1,0 +1,39 @@
+a{
+    text-decoration: none;
+    color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.87);;
+}
+
+.spans:hover{
+    cursor: pointer;
+    color:var(--ion-color-primary);
+}
+
+.spans{
+    position: relative;
+    display: flex;
+    float: left;
+    align-items: center;
+    justify-content: flex-start;
+    padding-right: 5px;
+}
+
+.i-icon:hover{
+    color: black;
+}
+
+.spans:hover:last-child{
+    color:unset;
+}
+
+.spans:hover:first-child{
+    color:unset;
+}
+
+.spans:first-child{
+    position: relative;
+    display: flex;
+    float: left;
+    align-items: center;
+    justify-content: flex-start;
+    padding-right: 5px;
+}

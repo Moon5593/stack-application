@@ -1,0 +1,13 @@
+{
+  "appId": "com.stack_application.tanmay0593",
+  "appName": "stack-application",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}

@@ -1,0 +1,23 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Report page</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onCancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ion-margin"></div>
+  <p>Please briefly explain why you feel this question should be reported.</p>
+    <form [formGroup]='form'>
+      <ion-item>
+        <ion-label position="stacked">Explain</ion-label>
+        <ion-textarea type="text" formControlName="details" rows="10"></ion-textarea>
+      </ion-item>
+      <ion-button color="danger" class="ion-margin-top" expand="full" [disabled]="!form.valid" type="button" (click)="onReportQ()">Report</ion-button>
+    </form>
+  
+</ion-content>

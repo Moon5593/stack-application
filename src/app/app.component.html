@@ -1,3 +1,32 @@
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
+<ion-app [class.dark-theme]="dark">
+<app-header [userImage]="userImage" [urlImage]="urlImage" [auth]="previousAuthState" style="z-index: 1;"></app-header>
+  <ion-content style="z-index: 0;">
+    <ion-split-pane contentId="main" when="xl">
+  <ion-menu contentId="main" side="start">
+    <ion-content>
+      <ion-list *ngFor="let item of sidelist_items; index as i" lines="none">
+        <!--<ion-list-header *ngIf="i===0">
+          {{ 'stack menu' | uppercase }}
+        </ion-list-header>-->
+        <ion-menu-toggle autoHide="false">
+          <ion-item [routerLink]="item.url" routerLinkActive="selected" routerDirection="forward">
+            <ion-icon slot="start" [name]="item.icon"></ion-icon>
+            <ion-label><h2>{{item.title}}</h2></ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+      <ion-item lines="none">
+        <ion-icon slot="start" name="moon-outline"></ion-icon>
+        <ion-label>
+          Dark Mode
+        </ion-label>
+        <ion-toggle [(ngModel)]="dark" (ionChange)="toggleChange()"></ion-toggle>
+      </ion-item>
+    </ion-content>
+  </ion-menu>
+    <!--<ion-router-outlet id="main"></ion-router-outlet>
+    </ion-split-pane>-->
+    <ion-router-outlet id="main"></ion-router-outlet>
+    </ion-split-pane>
+    </ion-content>
 </ion-app>
