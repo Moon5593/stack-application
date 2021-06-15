@@ -72,11 +72,13 @@ export class SideCompPage implements OnInit, OnDestroy {
                 resultData.data.postingData.policy
               )
               .subscribe(response=>{
-                console.log(response);
-                loadingEl.dismiss();
-                this.toastCtrl.create({message: 'Successfully posted your post.', duration: 2000})
-                .then(toastEl=>{
-                  toastEl.present();
+                //console.log(response);
+                this.appData.setQuestionTotal().subscribe(()=>{
+                  loadingEl.dismiss();
+                  this.toastCtrl.create({message: 'Successfully posted your post.', duration: 2000})
+                  .then(toastEl=>{
+                    toastEl.present();
+                  });
                 });
               },
               errRes=>{

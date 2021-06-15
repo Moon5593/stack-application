@@ -3,10 +3,11 @@ import { Injectable, OnInit } from '@angular/core';
 import { Plugins } from '@capacitor/core';
 import { BehaviorSubject, from, of, Subject } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs/operators';
-import { AuthService } from './auth.service';
+import { AuthService, TotalData } from './auth.service';
 import { Question } from '../models/question.model';
 import { Comment } from '../models/comment.model';
 import { Replies } from '../models/replies.model';
+import { Totals } from '../models/totals.model';
 
 export interface AppQuestions{
   anonymous?: boolean;
@@ -203,6 +204,33 @@ export class AppDataService implements OnInit{
       tap(questions=>{
         post.id = generatedId;
         this._questions.next(questions.concat(post));
+      })
+    );
+  }
+
+  setQuestionTotal(){
+    let fetchedToken;
+    let total;
+    return this.authService.token
+    .pipe(
+      take(1),
+      switchMap(token=>{
+        fetchedToken = token;
+        return this.http.get<{[key: string]: TotalData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`);
+      }),
+      switchMap(totalData=>{
+        for(let key in totalData){
+          if(totalData.hasOwnProperty(key)){
+            total = new Totals(
+              totalData[key].users,
+              totalData[key].questions+1,
+              totalData[key].answers,
+              totalData[key].best_answers
+            );
+          }
+        }
+        return this.http.put(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`,
+        {...total});
       })
     );
   }
@@ -659,5 +687,4 @@ export class AppDataService implements OnInit{
     );
 
   }
-  
 }
