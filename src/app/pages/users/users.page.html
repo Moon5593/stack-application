@@ -1,0 +1,89 @@
+<ion-content>
+  <ion-grid fixed class="grid_head">
+    <ion-row>
+      <ion-col size="12" size-lg="8" size-xl="8" class="ion-no-padding">
+        <ion-item lines="none" class="hidden-lg-up">
+          <ion-icon name="search-outline"></ion-icon>
+          <p class="ion-padding-start">Search</p>
+          <ion-item slot="end" lines="none">
+            <ion-icon name="help-outline"></ion-icon>
+            <span class="ion-padding-start">Ask a question</span>
+          </ion-item>
+        </ion-item>
+        <ion-item-divider class="hidden-lg-up"></ion-item-divider>
+      
+        <ion-item lines="none">
+          <ion-icon name="home-outline"></ion-icon>
+            <ion-label class="ion-padding-start">
+              <b>Home</b> / Users
+            </ion-label>
+      
+            <ion-select [ngModel]="'registered'" mode="ios" interface="popover">
+              <ion-select-option value="registered">
+                Date registered
+              </ion-select-option>
+              <ion-select-option value="id">
+                ID
+              </ion-select-option>
+              <ion-select-option value="name">
+                Name
+              </ion-select-option>
+              <ion-select-option value="points">
+                Reputation points
+              </ion-select-option>
+            </ion-select>
+      
+            <ion-searchbar class="hidden-md-down" show-cancel-button="focus" placeholder="Type to find..." animated ></ion-searchbar>
+          </ion-item>
+        <ion-item-divider></ion-item-divider>
+      
+        <ion-grid class="ion-no-padding">
+          <ion-row>
+            <ion-col size="12" size-lg="4" class="ion-text-center">
+              <ion-card class="ion-padding">
+                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
+                    <img src="../../../assets/cat.jpg">
+                  </ion-avatar>
+                  <p>Username</p>
+                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
+                  <div style="margin-top: 10px;">
+                    <ion-button color="primary">Follow</ion-button>
+                  </div>
+              </ion-card>
+            </ion-col>
+      
+            <ion-col size="12" size-lg="4" class="ion-text-center">
+              <ion-card class="ion-padding">
+                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
+                    <img src="../../../assets/cat.jpg">
+                  </ion-avatar>
+                  <p>Username</p>
+                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
+                  <div style="margin-top: 10px;">
+                    <ion-button color="primary">Follow</ion-button>
+                  </div>
+              </ion-card>
+            </ion-col>
+      
+            <ion-col size="12" size-lg="4" class="ion-text-center">
+              <ion-card class="ion-padding">
+                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
+                    <img src="../../../assets/cat.jpg">
+                  </ion-avatar>
+                  <p>Username</p>
+                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
+                  <div style="margin-top: 10px;">
+                    <ion-button color="primary">Follow</ion-button>
+                  </div>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+      <ion-col size="12" size-lg="4" size-xl="4" class="ion-no-padding">
+        <app-side-comp></app-side-comp>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  
+</ion-content>

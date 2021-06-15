@@ -1,0 +1,50 @@
+<ion-item class="picker" *ngIf="!signupMode" lines="none">
+  <ion-img
+    role="button"
+    class="image"
+    (click)="onPickImage()"
+    [src]="selectedImage"
+    *ngIf="selectedImage && showPreview"
+  ></ion-img>
+
+  <ion-label style="font-size: smaller;" *ngIf="!selectedImage || !showPreview">Select an image</ion-label>
+  <ion-icon name="camera" slot="start" class="ion-no-margin ion-padding-end" *ngIf="!selectedImage || !showPreview"></ion-icon>
+
+  <ion-chip (click)="onPickImage()" slot="end" *ngIf="!selectedImage || !showPreview">
+    <ion-label>Browse</ion-label>
+  </ion-chip>
+</ion-item>
+<div *ngIf="signupMode">
+  <h5>Pick profile picture</h5>
+  <div>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="2">
+          <ion-avatar>
+            <ion-img
+            [src]="selectedImage"
+            *ngIf="selectedImage && showPreview">
+          </ion-img>
+          <ion-img
+            src="../../../assets/icon.png"
+            *ngIf="!selectedImage && !showPreview">
+          </ion-img>
+          </ion-avatar>
+        </ion-col>
+        <ion-col size="3" offset="1" offset-sm="0">
+          <ion-button class="ion-margin-top" color="primary" (click)="onPickImage()">
+            <ion-icon name="camera"></ion-icon>
+            <ion-label>Change</ion-label>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+</div>
+<input
+  type="file"
+  accept="image/jpeg"
+  *ngIf="usePicker"
+  #filePicker
+  (change)="onFileChosen($event)"
+/>

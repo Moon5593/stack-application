@@ -1,0 +1,69 @@
+<ion-content>
+  <ion-grid fixed class="grid_head">
+    <ion-row>
+      <ion-col size="12" size-lg="8" size-xl="8" class="ion-no-padding">
+        <ion-img class="start-header"></ion-img>
+        <ion-segment scrollable class="hidden-md-down">
+          <ion-segment-button value="recent">
+            Recent questions
+          </ion-segment-button>
+          <ion-segment-button value="most">
+            Most answered
+          </ion-segment-button>
+          <ion-segment-button value="answers">
+            Answers
+          </ion-segment-button>
+          <ion-segment-button value="mv">
+            Most voted
+          </ion-segment-button>
+          <ion-segment-button value="na">
+            No answers
+          </ion-segment-button>
+        </ion-segment>
+
+        <ion-select [ngModel]="'recent'" mode="ios" class="hidden-lg-up">
+          <ion-select-option value="recent">
+            Recent questions
+          </ion-select-option>
+          <ion-select-option value="most">
+            Most answered
+          </ion-select-option>
+          <ion-select-option value="answers">
+            Answers
+          </ion-select-option>
+          <ion-select-option value="mv">
+            Most voted
+          </ion-select-option>
+          <ion-select-option value="na">
+            No answers
+          </ion-select-option>
+        </ion-select>
+
+        <ion-grid class="ion-no-padding">
+          <ion-row *ngIf="isLoading && !alertChecked">
+            <ion-col size="12" class="ion-text-center">
+              <ion-spinner color="primary"></ion-spinner>
+              <p>Fetching the posts. Please wait...</p>
+            </ion-col>
+          </ion-row>
+
+          <ion-row *ngIf="alertChecked">
+            <ion-col size="12" class="ion-text-center">
+              <p>No Posts to display. Please refresh.</p>
+            </ion-col>
+          </ion-row>
+
+          <ion-row *ngIf="!isLoading && !alertChecked">
+            <ion-col size="12">
+              <app-question-card [loadedQuestions]="loadedQuestions"></app-question-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+      <ion-col size="12" size-lg="4" size-xl="4" class="ion-no-padding">
+        <app-side-comp></app-side-comp>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>

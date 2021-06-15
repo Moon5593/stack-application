@@ -1,0 +1,212 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>QA Page</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onCancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]='form'>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12">
+          <ion-item>
+            <ion-label position="stacked">Question title</ion-label>
+            <ion-input type="text" formControlName="question">
+              <ion-icon name="chatbox"></ion-icon>
+            </ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="!form.get('question').valid && form.get('question').touched">
+        <ion-col size="12">
+          <p>Please choose an appropriate title for the question so it can be answered easily.</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item>
+            <ion-label position="stacked">Catagory</ion-label>
+            <ion-select formControlName="catagory" mode="ios">
+              <ion-select-option value="select_cat">
+                Select a catagory
+              </ion-select-option>
+              <ion-select-option value="analytics">
+                Analytics
+              </ion-select-option>
+              <ion-select-option value="communication">
+                Communication
+              </ion-select-option>
+              <ion-select-option value="company">
+                Company
+              </ion-select-option>
+              <ion-select-option value="language">
+                Language
+              </ion-select-option>
+              <ion-select-option value="management">
+                Management
+              </ion-select-option>
+              <ion-select-option value="programmers">
+                Programmers
+              </ion-select-option>
+              <ion-select-option value="program">
+                Program
+              </ion-select-option>
+              <ion-select-option value="university">
+                University
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="!form.get('catagory').valid && form.get('catagory').touched">
+        <ion-col size="12">
+          <p>Please choose the appropriate section so the question can be searched easily.</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row *ngIf="tags.length>0">
+        <ion-col size="12">
+          <ion-item *ngFor="let tag of tags; index as i" lines="none" style="width: min-content; float: left;">
+            <ion-text>{{ tag }}</ion-text>
+            <ion-icon (click)="delClicked(i)" style="cursor: pointer;" name="close-outline"></ion-icon>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="12">
+          <ion-item>
+            <ion-label position="stacked">Tags</ion-label>
+            <ion-input type="text" formControlName="tags" (ionBlur)="tagLostFocus($event)" (keydown)="comma_pressed($event)" (keyup)="reset_input($event)">
+              <ion-icon name="pricetag"></ion-icon>
+            </ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="!form.get('tags').valid && form.get('tags').touched">
+        <ion-col size="12">
+          <p>Please choose suitable Keywords Ex: <span style="color: var(--ion-color-primary);">question, poll</span>.</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none" class="ion-margin-top">
+            <ion-text>Is this question is a poll? If you want to be doing a poll click here.</ion-text>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row *ngIf="form.get('checkbox').value">
+        <ion-col size="12">
+          <ion-item lines="none" class="ion-margin-top">
+            <ion-text>Image poll?</ion-text>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox_img"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row *ngIf="form.get('checkbox').value">
+        <ion-col size="12">
+          <ion-item formArrayName="add_answers" *ngIf="controls.length>=1">
+            <ion-grid>
+              <ion-row *ngFor = "let control of controls; let i = index" [formGroupName] = "i">
+                <ion-col size="10">
+                  <ion-input *ngIf="!form.get('checkbox_img').value" style="border:1px solid var(--ion-item-border-color, var(--ion-border-color, var(--ion-color-step-150, rgba(0, 0, 0, 0.13))));" type="text" formControlName="answer">
+                    <ion-icon class="ion-padding-start" name="chatbox"></ion-icon>
+                  </ion-input>
+
+                  <app-image-picker *ngIf="form.get('checkbox_img').value" [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
+                </ion-col>
+                <ion-col size="2" *ngIf="!form.get('checkbox_img').value">
+                  <ion-button color="danger" (click)="onDeleteAnswer(i)">X</ion-button>
+                </ion-col>
+                <ion-col size="2" *ngIf="form.get('checkbox_img').value" class="ion-padding-top">
+                  <ion-button color="danger" class="ion-no-margin" (click)="onDeleteAnswer(i)">X</ion-button>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-item>
+
+          <ion-button color="secondary" (click)="onAddAnswer()">Add more answers</ion-button>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-text style="font-size: smaller;" class="ion-margin-start">Featured image</ion-text>
+          <app-image-picker [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item>
+            <ion-label position="stacked">Details</ion-label>
+            <ion-textarea type="text" formControlName="details" rows="6"></ion-textarea>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="12">
+          <ion-text style="font-size: smaller;">Type the description thoroughly and in details.</ion-text>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-text>Ask anonymously</ion-text>
+            <ion-item lines="none">
+              <ion-avatar slot="start">
+                <img src="../../assets/cat.jpg">
+              </ion-avatar>
+              <ion-text><b>tan asks</b></ion-text>
+            </ion-item>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="anonymous"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-text>This question is a private question?</ion-text>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="private"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-text>Get notified by email when someone answers this question.</ion-text>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="notif"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-text>By asking your question, you agree to the <span><b>Terms of Service</b></span> and <span><b>Privacy Policy</b></span>.</ion-text>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="policy"></ion-checkbox>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12" class="ion-text-center">
+          <ion-button class="ion-margin-top" expand="full" [disabled]="!form.valid" type="submit" (click)="onCreateQ()">Publish your question</ion-button>
+        </ion-col>
+      </ion-row>
+
+    </ion-grid>
+  </form>
+</ion-content>

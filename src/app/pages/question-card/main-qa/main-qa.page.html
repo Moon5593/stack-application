@@ -1,0 +1,354 @@
+<ion-content *ngIf="!isLoading">
+  <ion-grid fixed class="grid_head">
+    <ion-row>
+      <ion-col size="12" size-lg="8" size-xl="8" class="ion-no-padding">
+        <ion-card class="hidden-sm-down ion-no-margin">
+          <ion-item lines="none">
+            <ion-avatar slot="start">
+              <img [src]="question?.userImage">
+            </ion-avatar>
+            <ion-text style="color: var(--ion-color-primary);">
+              <b>{{ question?.createdBy }}</b>
+              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question?.createdUserBadge }}</span>
+              <span class="ion-margin-start" style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question?.postDate | date: 'longDate' }}</span></span>
+            </ion-text>
+          </ion-item>
+
+          <ion-card-header class="ion-margin-start">
+            <ion-card-title class="ion-margin-start">
+              {{ question?.question }}
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-grid>
+            <ion-row>
+              <ion-col size="2" class="ion-text-center">
+                <ion-icon style="cursor: pointer;" (click)="increaseCount(question.id, i)" name="caret-up-outline"></ion-icon>
+                <p>
+                  <b *ngIf="!isLoading || (currentIndex!==i)">{{ question?.upCount + question?.downCount }}</b>
+                  <ion-spinner color="primary" *ngIf="isLoading && (currentIndex===i)"></ion-spinner>
+                </p>
+                <ion-icon style="cursor: pointer;" (click)="decreaseCount(question.id, i)" name="caret-down-outline"></ion-icon>
+              </ion-col>
+              <ion-col size="10" class="ion-no-padding">
+                <ion-card-content>
+                  <ion-img *ngIf="question?.imageData" style="width: 20vw; height: 20vh; min-width: 180px; max-width: 195px;" [src]="question?.imageData"></ion-img>
+                  <ion-text>{{ question?.details }}</ion-text>
+                </ion-card-content>
+                <ion-chip *ngFor="let tag of question?.tags">
+                  <ion-label>{{ tag }}</ion-label>
+                </ion-chip>
+                <!--<ion-chip>
+                  <ion-label>Default2</ion-label>
+                </ion-chip>-->
+              </ion-col>
+            </ion-row>
+
+            <ion-row>
+              <ion-col size="2"></ion-col>
+              <ion-col size="10">
+                <ion-card>
+                  <ion-card-content style="display: flex;">
+                    <ion-chip>
+                      <ion-label *ngIf="comments.length>=1"><a (click)="scrollToReplies(comments[0].id)">{{ comments?.length }} answers</a></ion-label>
+                      <ion-label *ngIf="comments.length<1"><a>{{ comments?.length }} answers</a></ion-label>
+                    </ion-chip>
+                    <ion-chip>
+                      <ion-label>Default2</ion-label>
+                    </ion-chip>
+                    <div style="flex: 1 1 auto;"></div>
+                    <ion-button>Answer</ion-button>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+          <ion-item-divider></ion-item-divider>
+          <ion-item lines="none" button (click)="report()" style="width: min-content;">
+            <ion-icon name="warning-outline"></ion-icon>
+            <ion-text class="ion-padding-start">Report</ion-text>
+          </ion-item>
+
+        </ion-card>
+
+        <ion-card class="hidden-sm-up ion-no-margin">
+          <ion-item lines="none" class="ion-margin-top">
+            <ion-avatar slot="start">
+              <img [src]="question?.userImage">
+            </ion-avatar>
+
+            <ion-text class="ion-text-center">
+              <ion-icon name="caret-up-outline" style="cursor: pointer;" (click)="increaseCount(question.id, i)"></ion-icon>
+              <p>
+                <b *ngIf="!isLoading || (currentIndex!==i)">{{ question?.upCount + question?.downCount }}</b>
+                <ion-spinner color="primary" *ngIf="isLoading && (currentIndex===i)"></ion-spinner>
+              </p>
+              <ion-icon name="caret-down-outline" style="cursor: pointer;" (click)="decreaseCount(question.id, i)"></ion-icon>
+            </ion-text>
+            <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
+              <span><b>{{ question?.createdBy }}</b></span>
+              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question?.createdUserBadge }}</span>
+              <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question?.postDate | date: 'longDate' }}</span></p>
+            </ion-text>
+          </ion-item>
+
+          <ion-card-header>
+            <ion-card-title>
+              {{ question?.question }}
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-grid>
+            <ion-row>
+              <ion-col size="12" class="ion-no-padding">
+                <ion-card-content>
+                  {{ question?.details }}
+                </ion-card-content>
+                <ion-chip *ngFor="let tag of question?.tags">
+                  <ion-label>{{ tag }}</ion-label>
+                </ion-chip>
+                <!--<ion-chip>
+                  <ion-label>Default2</ion-label>
+                </ion-chip>-->
+              </ion-col>
+            </ion-row>
+
+            <ion-row>
+              <ion-col size="12">
+                <ion-card>
+                  <ion-card-content class="ion-no-padding">
+                    <ion-chip>
+                      <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+                      <ion-label><a>{{ comments?.length }} answers</a></ion-label>
+                    </ion-chip>
+                    <ion-chip>
+                      <ion-icon name="eye-outline"></ion-icon>
+                      <ion-label>Default2</ion-label>
+                    </ion-chip>
+                    <ion-button style="--border-radius: 0px;">Answer</ion-button>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card>
+
+        <div style="display: flex;">
+          <p style="flex: 1 1 auto;"><b>{{ comments?.length }} answers</b></p>
+          <ion-segment style="width: min-content;">
+            <ion-segment-button value="voted">
+              Voted
+            </ion-segment-button>
+            <ion-segment-button value="oldest">
+              Oldest
+            </ion-segment-button>
+            <ion-segment-button value="recent">
+              Recent
+            </ion-segment-button>
+            <ion-segment-button value="Random">
+              Random
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <ion-card class="ion-no-margin" [id]="comment.id" *ngFor="let comment of comments; index as i">
+          <ion-item lines="none" class="ion-margin-top">
+            <ion-avatar slot="start">
+              <img [src]="comment?.userImage">
+            </ion-avatar>
+
+            <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
+              <span><b>{{ comment?.userName }}</b></span>
+              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ comment?.userBadge }}</span>
+              <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Added an answer on {{ comment?.postDate | date: 'longDate' }}</p>
+            </ion-text>
+          </ion-item>
+
+          <ion-grid>
+            <ion-row class="ion-padding-start">
+              <ion-col size="1" class="ion-padding-end"></ion-col>
+              <ion-col size="11" class="ion-padding-start">
+                <ion-card-content class="ion-no-padding">
+                  {{ comment.comment }}
+                </ion-card-content>
+                <p style="display: flex;">
+                  <span style="flex: 1 1 auto;">
+                    <span class="spans">
+                      <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteComment()"></ion-icon>
+                      <span style="padding: 0px 5px;">
+                        <b>{{ comment?.upvoteComment + comment?.downvoteComment }}</b>
+                      </span>
+                      <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteComment()"></ion-icon>
+                    </span>
+                    <span class="spans" (click)="setReplyStatus(i)">
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                      <span style="padding: 0px 5px;">Reply</span>
+                    </span>
+                    <span class="spans">
+                      <ion-icon name="share-social-outline"></ion-icon>
+                      <span style="padding: 0px 5px;">Share</span>
+                    </span>
+                  </span>
+                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                </p>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <ion-card *ngIf="comment.reply" class="ion-padding ion-no-margin">
+            <p><b>Reply to {{ comment?.userName }}</b></p>
+            <a style="cursor: pointer;" (click)="setReplyStatus(i)"><b>Cancel reply</b></a>
+            <ion-card-content class="ion-no-padding">
+  
+              <ion-item lines="none" style="--padding-start: 0;">
+                <ion-text class="ion-padding-end">Logged in as</ion-text>
+                <ion-icon name="person"></ion-icon>
+                <ion-text class="ion-padding-start">{{ username ? username : 'anonymously' }}</ion-text>
+                <ion-item lines="none">
+                  <ion-icon name="log-out"></ion-icon>
+                  <ion-text class="ion-padding-start">Log out</ion-text>
+                </ion-item>
+              </ion-item>
+              <form [formGroup]="r_form">
+                <ion-item>
+                  <ion-label position="stacked">Details</ion-label>
+                  <ion-textarea type="text" formControlName="r_details" rows="6"></ion-textarea>
+                </ion-item>
+                <ion-grid *ngIf="isCommenting">
+                  <ion-row>
+                    <ion-col size="12" class="ion-text-center">
+                      <ion-spinner color="primary"></ion-spinner>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+                <ion-button *ngIf="!isCommenting" color="primary" class="ion-margin-top" expand="full" [disabled]="!r_form.valid" type="button" (click)="onReply(comment.id, i)">Submit</ion-button>
+              </form>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-grid *ngIf="comments[i].replies">
+            <ion-row class="ion-padding-start">
+              <ion-col size="1" class="ion-padding-end"></ion-col>
+              <ion-col size="11" class="ion-padding-start">
+                <ion-card class="ion-no-margin" *ngFor="let reply of comments[i].replies; index as r">
+                  <ion-item lines="none" class="ion-margin-top">
+                    <ion-avatar slot="start">
+                      <img [src]="reply?.userImage">
+                    </ion-avatar>
+        
+                    <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
+                      <span><b>{{ reply?.userName }}</b></span>
+                      <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ reply?.userBadge }}</span>
+                      <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Replied to answer on {{ reply?.replyDate | date: 'longDate' }}</p>
+                    </ion-text>
+                  </ion-item>
+        
+                  <ion-grid class="ion-padding-start">
+                    <ion-row class="ion-padding-start">
+                      <ion-col size="1" class="ion-padding-end"></ion-col>
+                      <ion-col size="11" class="ion-padding-start">
+                        <ion-card-content class="ion-no-padding">
+                          {{ reply?.reply }}
+                        </ion-card-content>
+                        <p style="display: flex;">
+                          <span style="flex: 1 1 auto;">
+                            <span class="spans">
+                              <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteReply()"></ion-icon>
+                              <span style="padding: 0px 5px;">
+                                <b>{{ reply?.upvoteReply + reply?.downvoteReply }}</b>
+                              </span>
+                              <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteReply()"></ion-icon>
+                            </span>
+                            <span class="spans" (click)="setReplyToReplyStatus(i, r)">
+                              <ion-icon name="arrow-undo-outline"></ion-icon>
+                              <span style="padding: 0px 5px;">Reply</span>
+                            </span>
+                            <span class="spans">
+                              <ion-icon name="share-social-outline"></ion-icon>
+                              <span style="padding: 0px 5px;">Share</span>
+                            </span>
+                          </span>
+                          <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                        </p>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+        
+                  <ion-card *ngIf="reply.replyToReply" class="ion-padding ion-no-margin">
+                    <p><b>Reply to {{ reply?.userName }}</b></p>
+                    <a (click)="setReplyToReplyStatus(i, r)"><b>Cancel reply</b></a>
+                    <ion-card-content class="ion-no-padding">
+          
+                      <ion-item lines="none" style="--padding-start: 0;">
+                        <ion-text class="ion-padding-end">Logged in as</ion-text>
+                        <ion-icon name="person"></ion-icon>
+                        <ion-text class="ion-padding-start">{{ username ? username : 'anonymously' }}</ion-text>
+                        <ion-item lines="none">
+                          <ion-icon name="log-out"></ion-icon>
+                          <ion-text class="ion-padding-start">Log out</ion-text>
+                        </ion-item>
+                      </ion-item>
+                      <form [formGroup]="ror_form">
+                        <ion-item>
+                          <ion-label position="stacked">Details</ion-label>
+                          <ion-textarea type="text" formControlName="ror_details" rows="6"></ion-textarea>
+                        </ion-item>
+                        <ion-grid *ngIf="isCommenting">
+                          <ion-row>
+                            <ion-col size="12" class="ion-text-center">
+                              <ion-spinner color="primary"></ion-spinner>
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
+                        <ion-button *ngIf="!isCommenting" color="primary" class="ion-margin-top" expand="full" [disabled]="!ror_form.valid" type="button" (click)="onReplyToReply(comment.id, reply.id, i, r)">Submit</ion-button>
+                      </form>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+        </ion-card>
+
+        <ion-card class="ion-padding ion-no-margin">
+          <p><b>Leave an answer</b></p>
+          <ion-card-content class="ion-no-padding">
+            <ion-item lines="none" style="--padding-start: 0;">
+              <ion-text class="ion-padding-end">Logged in as</ion-text>
+              <ion-icon name="person"></ion-icon>
+              <ion-text class="ion-padding-start">{{ username ? username : 'anonymously' }}</ion-text>
+              <ion-item lines="none">
+                <ion-icon name="log-out"></ion-icon>
+                <ion-text class="ion-padding-start">Log out</ion-text>
+              </ion-item>
+            </ion-item>
+            <form [formGroup]="form">
+              <div>
+                <ion-text style="font-size: smaller;" class="ion-margin-start">Featured image</ion-text>
+                <app-image-picker [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
+              </div>
+              <ion-item>
+                <ion-label position="stacked">Details</ion-label>
+                <ion-textarea type="text" formControlName="details" rows="6"></ion-textarea>
+              </ion-item>
+              <ion-grid *ngIf="isCommenting">
+                <ion-row>
+                  <ion-col size="12" class="ion-text-center">
+                    <ion-spinner color="primary"></ion-spinner>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <ion-button *ngIf="!isCommenting" color="primary" class="ion-margin-top" expand="full" [disabled]="!form.valid" type="button" (click)="onComment()">Submit</ion-button>
+            </form>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-lg="4" size-xl="4" class="ion-no-padding">
+        <app-side-comp></app-side-comp>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>
