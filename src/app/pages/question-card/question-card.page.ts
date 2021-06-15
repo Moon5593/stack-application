@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AlertController, NavController, ToastController } from '@ionic/angular';
-import { AppDataService } from 'src/app/app-data.service';
-import { AuthService } from 'src/app/auth/auth.service';
-import { Question } from 'src/app/question.model';
+import { AppDataService } from 'src/app/services & shared/app-data.service';
+import { AuthService } from 'src/app/services & shared/auth.service';
+import { Question } from 'src/app/models/question.model';
 
 @Component({
   selector: 'app-question-card',

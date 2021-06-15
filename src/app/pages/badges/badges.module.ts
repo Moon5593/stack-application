@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { BadgesPageRoutingModule } from './badges-routing.module';
 
 import { BadgesPage } from './badges.page';
-import { SideCompPageModule } from '../../side-component-page/side-comp.module';
+import { SideCompPageModule } from '../side-component/side-comp.module';
 
 @NgModule({
   imports: [

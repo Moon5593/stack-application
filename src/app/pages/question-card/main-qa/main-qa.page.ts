@@ -4,11 +4,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ModalController, NavController, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
-import { AppDataService } from 'src/app/app-data.service';
-import { AuthService } from 'src/app/auth/auth.service';
-import { Comment } from 'src/app/comment.model';
-import { Question } from 'src/app/question.model';
-import { ReportComponent } from '../../report/report.component';
+import { AppDataService } from 'src/app/services & shared/app-data.service';
+import { AuthService } from 'src/app/services & shared/auth.service';
+import { Comment } from 'src/app/models/comment.model';
+import { Question } from 'src/app/models/question.model';
+import { ReportComponent } from '../../../modals/report/report.component';
 
 @Component({
   selector: 'app-main-qa',

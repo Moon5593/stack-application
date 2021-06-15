@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { AuthResolver } from './auth/auth-resolve.service';
-import { AuthGuard } from './auth/auth.guard';
+import { AuthResolver } from './services & shared/auth-resolve.service';
+import { AuthGuard } from './services & shared/auth.guard';
 
 const routes: Routes = [
   {
@@ -15,7 +15,7 @@ const routes: Routes = [
     children: [
       {
         path: 'home',
-        loadChildren: () => import('./pages/home-page-detail/home-page-detail.module').then( m => m.HomePageDetailPageModule)
+        loadChildren: () => import('./pages/home-detail/home-detail.module').then( m => m.HomePageDetailPageModule)
       },
       {
         path: 'home/:questionId',

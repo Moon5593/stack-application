@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { from, of, Subscription, EMPTY } from 'rxjs';
-import { AuthService } from './auth/auth.service';
-import { AppDataService } from './app-data.service';
+import { AuthService } from './services & shared/auth.service';
+import { AppDataService } from './services & shared/app-data.service';
 import { AppState, Plugins } from '@capacitor/core';
 import { filter, switchMap, take, tap } from 'rxjs/operators';
 
@@ -51,9 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(){
     this.authSub = this.authService.userIsAuthenticated.subscribe(isAuth => {
-      if (!isAuth && this.previousAuthState !== isAuth) {
-
-      }
+      if (!isAuth && this.previousAuthState !== isAuth) {}
       this.previousAuthState = isAuth;
       this.authService.userImage.pipe(take(1)).subscribe(image=>{
         this.urlImage = image;
@@ -62,7 +60,6 @@ export class AppComponent implements OnInit, OnDestroy {
     });
 
     if(!this.previousAuthState){
-      console.log('inside not previous auth');
       this.anonymous_sub = from(Plugins.Storage.get({ key: 'authData' }))
       .pipe(
         switchMap(fetchedUser=>{
@@ -82,12 +79,10 @@ export class AppComponent implements OnInit, OnDestroy {
             if(parsedData){
               const expirationTime = new Date(parsedData.tokenExpirationDate);
               if(expirationTime <= new Date()){
-                console.log('user expired');
                 Plugins.Storage.remove({ key: 'authData' });
                 return from(Plugins.Storage.get({ key: 'anonymousToken' }));
               }
             }
-            console.log('empty');
             return EMPTY;
           }
         }),
@@ -99,18 +94,14 @@ export class AppComponent implements OnInit, OnDestroy {
           if(data){
             const expirationTime = new Date(data.expiresIn);
             if(expirationTime <= new Date()){
-              console.log('dated expired');
               Plugins.Storage.remove({ key: 'anonymousToken' });
               fetchedData = null;
             }
           }
-
-          if (!fetchedData || !fetchedData.value) {
-            console.log('anonymous not exist');
+          if (!fetchedData || !fetchedData.value){
             this.authService.anonymousSignUp()
             .pipe(
               tap(tokenData=>{
-              //console.log(tokenData);
               const expirationTime = new Date(
                 new Date().getTime() + +tokenData.expiresIn * 1000
               ).toISOString();
@@ -131,7 +122,6 @@ export class AppComponent implements OnInit, OnDestroy {
         }),
         filter(token=>token!==null),
         tap(tokenValue=>{
-          console.log('anonymous exist');
           this.authService._atoken.next(tokenValue);
         })
       ).subscribe(()=>{});

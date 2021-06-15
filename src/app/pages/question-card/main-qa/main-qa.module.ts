@@ -6,9 +6,9 @@ import { IonicModule } from '@ionic/angular';
 import { MainQaPageRoutingModule } from './main-qa-routing.module';
 import { MainQaPage } from './main-qa.page';
 import { QuestionCardPageModule } from '../question-card.module';
-import { SideCompPageModule } from 'src/app/side-component-page/side-comp.module';
-import { ReportComponent } from '../../report/report.component';
-import { SharedModule } from '../../shared.module';
+import { SideCompPageModule } from 'src/app/pages/side-component/side-comp.module';
+import { ReportComponent } from '../../../modals/report/report.component';
+import { SharedModule } from '../../../services & shared/shared.module';
 
 @NgModule({
   imports: [

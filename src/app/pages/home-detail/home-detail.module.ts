@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { UsersPageRoutingModule } from './users-routing.module';
-import { UsersPage } from './users.page';
+import { HomeDetailPage } from './home-detail.page';
+import { HomePageRoutingModule } from './home-routing.module';
+import { QuestionCardPageModule } from '../question-card/question-card.module';
 import { SideCompPageModule } from '../side-component/side-comp.module';
 
 @NgModule({
@@ -13,9 +14,10 @@ import { SideCompPageModule } from '../side-component/side-comp.module';
     CommonModule,
     FormsModule,
     IonicModule,
-    UsersPageRoutingModule,
+    HomePageRoutingModule,
+    QuestionCardPageModule,
     SideCompPageModule
   ],
-  declarations: [UsersPage]
+  declarations: [HomeDetailPage]
 })
-export class UsersPageModule {}
+export class HomePageDetailPageModule {}
