@@ -1,7 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { AppDataService } from 'src/app/app-data.service';
+import { AuthService } from 'src/app/auth/auth.service';
 import { Question } from 'src/app/question.model';
 
 @Component({
@@ -14,8 +16,10 @@ export class HomePageDetailPage implements OnInit, OnDestroy {
   questionsSub: Subscription;
   isLoading: boolean = false;
   alertChecked: boolean = false;
+  aSub: Subscription;
+  userSub: Subscription;
 
-  constructor(private appDataService: AppDataService, private alertCtrl: AlertController) {}
+  constructor(private appDataService: AppDataService, private alertCtrl: AlertController, private authService: AuthService) {}
 
   ngOnInit() {
     this.questionsSub = this.appDataService.questions.subscribe(questions=>{
@@ -39,25 +43,55 @@ export class HomePageDetailPage implements OnInit, OnDestroy {
     if(this.loadedQuestions.length<1){
       this.isLoading = true;
       this.appDataService.loadingEmitter.next(this.isLoading);
-        this.appDataService.fetchQuestions().subscribe(()=>{
-          this.isLoading = false;
-          this.appDataService.loadingEmitter.next(this.isLoading);
-        },
-        err=>{
-          this.alertCtrl
-          .create({
-            header: 'Error!',
-            message: 'Please check your network connection.',
-            buttons: [{text: 'Okay', handler: ()=>{
-              this.isLoading = false;
-              this.appDataService.loadingEmitter.next(this.isLoading);
-              this.alertChecked = true;
-            }}]
-          })
-          .then(alertEl => {
-            alertEl.present();
+      this.aSub = this.authService.aToken.subscribe(aToken=>{
+        if(aToken){
+          console.log('inside anonymous home page');
+          this.appDataService.fetchQuestions().subscribe(()=>{
+            this.isLoading = false;
+            this.appDataService.loadingEmitter.next(this.isLoading);
+          },
+          err=>{
+            this.alertCtrl
+            .create({
+              header: 'Error!',
+              message: 'Please check your network connection.',
+              buttons: [{text: 'Okay', handler: ()=>{
+                this.isLoading = false;
+                this.appDataService.loadingEmitter.next(this.isLoading);
+                this.alertChecked = true;
+              }}]
+            })
+            .then(alertEl => {
+              alertEl.present();
+            });
           });
-        });
+        }
+      });
+
+      this.userSub = this.authService.userIsAuthenticated.subscribe(auth=>{
+        if(auth){
+          console.log('inside user home page');
+          this.appDataService.fetchQuestions().subscribe(()=>{
+            this.isLoading = false;
+            this.appDataService.loadingEmitter.next(this.isLoading);
+          },
+          err=>{
+            this.alertCtrl
+            .create({
+              header: 'Error!',
+              message: 'Please check your network connection.',
+              buttons: [{text: 'Okay', handler: ()=>{
+                this.isLoading = false;
+                this.appDataService.loadingEmitter.next(this.isLoading);
+                this.alertChecked = true;
+              }}]
+            })
+            .then(alertEl => {
+              alertEl.present();
+            });
+          });
+        }
+      });
     }
     
   }
@@ -65,6 +99,12 @@ export class HomePageDetailPage implements OnInit, OnDestroy {
   ngOnDestroy(){
     if(this.questionsSub){
       this.questionsSub.unsubscribe();
+    }
+    if(this.aSub){
+      this.aSub.unsubscribe();
+    }
+    if(this.userSub){
+      this.userSub.unsubscribe();
     }
   }
 

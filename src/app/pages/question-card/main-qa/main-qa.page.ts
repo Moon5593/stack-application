@@ -205,7 +205,7 @@ export class MainQaPage implements OnInit, OnDestroy, DoCheck {
   }
 
   setReplyStatus(index: number){
-    this.authService.userIsAuthenticated.subscribe(auth=>{
+    this.authService.userIsAuthenticated.pipe(take(1)).subscribe(auth=>{
       if(auth){
         this.comments[index].reply = !this.comments[index].reply;
         this.r_form = new FormGroup({
@@ -223,7 +223,7 @@ export class MainQaPage implements OnInit, OnDestroy, DoCheck {
   }
 
   setReplyToReplyStatus(index: number, replyIndex: number){
-    this.authService.userIsAuthenticated.subscribe(auth=>{
+    this.authService.userIsAuthenticated.pipe(take(1)).subscribe(auth=>{
       if(auth){
         this.comments[index].replies[replyIndex].replyToReply = !this.comments[index].replies[replyIndex].replyToReply;
         this.ror_form = new FormGroup({
