@@ -5,7 +5,7 @@
         <ion-card class="hidden-sm-down ion-no-margin">
           <ion-item lines="none">
             <ion-avatar slot="start">
-              <img [src]="question?.userImage">
+              <img [src]="question?.userImage || '../../../assets/icon.png'">
             </ion-avatar>
             <ion-text style="color: var(--ion-color-primary);">
               <b>{{ question?.createdBy }}</b>
@@ -38,8 +38,8 @@
               <ion-col size="10" class="ion-no-padding" *ngIf="question?.add_answers">
                 <ion-card class="poll-card ion-padding-bottom">
                   <ion-item lines="none">
-                    <ion-icon name="help-circle"></ion-icon>
-                    <ion-label class="ion-padding-start">Participate in poll choose your answer</ion-label>
+                    <ion-icon color="medium" name="help-circle"></ion-icon>
+                    <ion-label color="medium" class="ion-padding-start">Participate in poll choose your answer</ion-label>
                   </ion-item>
                   <form [formGroup]='pollForm'>
                     <div formArrayName="checks_array" *ngIf="controls.length>=1">
@@ -100,7 +100,7 @@
         <ion-card class="hidden-sm-up ion-no-margin">
           <ion-item lines="none" class="ion-margin-top">
             <ion-avatar slot="start">
-              <img [src]="question?.userImage">
+              <img [src]="question?.userImage || '../../../assets/icon.png'">
             </ion-avatar>
 
             <ion-text class="ion-text-center">
@@ -134,8 +134,8 @@
               <ion-col size="12" class="ion-no-padding" *ngIf="question?.add_answers">
                 <ion-card class="poll-card ion-padding-bottom">
                   <ion-item lines="none">
-                    <ion-icon name="help-circle"></ion-icon>
-                    <ion-label class="ion-padding-start">Participate in poll choose your answer</ion-label>
+                    <ion-icon color="medium" name="help-circle"></ion-icon>
+                    <ion-label color="medium" class="ion-padding-start">Participate in poll choose your answer</ion-label>
                   </ion-item>
                   <form [formGroup]='pollForm'>
                     <div formArrayName="checks_array" *ngIf="controls.length>=1">
@@ -203,7 +203,7 @@
           </ion-segment>
         </div>
 
-        <div id="from_answer" style="display: flex;" class="hidden-sm-up">
+        <div id="from_answer" style="display: flex; margin: 0 5px;" class="hidden-sm-up">
           <p style="flex: 1 1 auto;"><b>{{ comments?.length }} answers</b></p>
           <ion-select [ngModel]="'voted'" mode="ios">
             <ion-select-option value="voted">
@@ -224,7 +224,7 @@
         <ion-card class="ion-no-margin" [id]="comment.id" *ngFor="let comment of comments; index as i">
           <ion-item lines="none" class="ion-margin-top">
             <ion-avatar slot="start">
-              <img [src]="comment?.userImage">
+              <img [src]="comment?.userImage || '../../../assets/icon.png'">
             </ion-avatar>
 
             <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
@@ -309,7 +309,7 @@
                 <ion-card class="ion-no-margin" *ngFor="let reply of comments[i].replies; index as r">
                   <ion-item lines="none" class="ion-margin-top">
                     <ion-avatar slot="start">
-                      <img [src]="reply?.userImage">
+                      <img [src]="reply?.userImage || '../../../assets/icon.png'">
                     </ion-avatar>
 
                     <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">

@@ -1,7 +1,7 @@
 <ion-card class="hidden-sm-down ion-no-margin" *ngFor="let question of loadedQuestions; index as i">
   <ion-item lines="none">
     <ion-avatar slot="start">
-      <img [src]="question.userImage">
+      <img [src]="question.userImage || '../../assets/icon.png'">
     </ion-avatar>
     <ion-text style="color: var(--ion-color-primary);">
       <b>{{ question.createdBy }}</b>
@@ -67,7 +67,7 @@
 <ion-card class="hidden-sm-up ion-no-margin" *ngFor="let question of loadedQuestions; index as i">
   <ion-item lines="none" class="ion-margin-top">
     <ion-avatar slot="start">
-      <img [src]="question.userImage">
+      <img [src]="question.userImage || '../../assets/icon.png'">
     </ion-avatar>
 
     <ion-text class="ion-text-center">

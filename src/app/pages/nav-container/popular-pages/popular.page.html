@@ -9,25 +9,26 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col size="12" class="ion-no-padding">
-          <ion-item lines="none">
-            <ion-avatar>
-              <img [src]="question?.userImage">
-            </ion-avatar>
-            <ion-text class="ion-padding-start">{{ question.question }}</ion-text>
-          </ion-item>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col size="2" class="ion-no-padding"><ion-item lines="none"></ion-item></ion-col>
-        <ion-col size="10" class="ion-no-padding">
-          <ion-item lines="none">
-            <ion-icon name="chatbox"></ion-icon>
-            <ion-label class="ion-padding-start">{{ question.totalComments || 0 }} Answers</ion-label>
-          </ion-item>
+          <ion-grid>
+            <ion-row>
+              <ion-col size="12">
+                <ion-item lines="none">
+                  <ion-avatar style="flex-shrink: 0;" class="ion-align-self-start">
+                    <img [src]="question?.userImage || '../../../assets/icon.png'">
+                  </ion-avatar>
+                  <ion-text class="ion-padding-start">
+                    <span>{{ question.question }}</span>
+                    <ion-item lines="none" class="ion-no-padding">
+                      <ion-icon name="chatbox"></ion-icon>
+                      <ion-label class="ion-padding-start">{{ question.totalComments || 0 }} Answers</ion-label>
+                    </ion-item>
+                  </ion-text>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
         </ion-col>
       </ion-row>
     </ion-grid>
-    <ion-item-divider *ngIf="question.length===2&&!(i===1)"></ion-item-divider>
-    <ion-item-divider *ngIf="!(question.length<=2)&&!(i===2)"></ion-item-divider>
   </div>
 </div>

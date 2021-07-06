@@ -9,9 +9,9 @@ export class Comment{
         public postDate: Date,
         public userRepPoints: number,
         public userName: string,
-        public userImage: string,
         public upvoteComment: number,
         public downvoteComment: number,
+        public userImage?: string,
         public replies?: Replies[],
         public reply?: boolean,
         public atLeastOneUpvote?: boolean

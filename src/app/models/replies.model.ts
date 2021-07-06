@@ -7,9 +7,9 @@ export class Replies{
         public replyDate: Date,
         public userRepPoints: number,
         public userName: string,
-        public userImage: string,
         public upvoteReply: number,
         public downvoteReply: number,
+        public userImage?: string,
         public replyToReply?: boolean
     ){}
 }

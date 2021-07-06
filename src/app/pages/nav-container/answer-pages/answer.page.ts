@@ -19,8 +19,10 @@ export class AnswerPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.commentsSub = this.appDataService.tComments.subscribe(comments=>{
       comments.map((c, i)=>{
-        if(!c.userImage.startsWith('data:image/jpeg;base64,')){
-          c.userImage = 'data:image/jpeg;base64,'+c.userImage;
+        if(c.userImage){
+          if(!c.userImage.startsWith('data:image/jpeg;base64,')){
+            c.userImage = 'data:image/jpeg;base64,'+c.userImage;
+          }
         }
       });
       this.listComments = comments;

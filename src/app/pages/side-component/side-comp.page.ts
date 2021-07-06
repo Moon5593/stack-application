@@ -55,7 +55,7 @@ export class SideCompPage implements OnInit, OnDestroy {
 
       this.appData.totalListQues.subscribe(ques=>{
         if(ques){
-          if(ques.length>1){
+          if(ques.length>=1){
             ques = [...new Map(ques.map(item => [item, item])).values()];
           }
           this.totalQues = ques.length;
@@ -80,18 +80,25 @@ export class SideCompPage implements OnInit, OnDestroy {
       });
 
       this.appData.questions.subscribe(ques=>{
-        this.ques = ques;
+        if(ques){
+          if(ques.length>=1){
+            ques = [...new Map(ques.map(item => [item['id'], item])).values()];
+            this.ques = ques;
+          }
+        }
       });
 
       this.authService.topThreeUsers.subscribe(users=>{
-        users.map(u=>{
-          if(u.imageUrl){
-            if(!u.imageUrl.startsWith('data:image/jpeg;base64,')){
-              u.imageUrl = 'data:image/jpeg;base64,'+u.imageUrl;
+        if(users){
+          users.map(u=>{
+            if(u.imageUrl){
+              if(!u.imageUrl.startsWith('data:image/jpeg;base64,')){
+                u.imageUrl = 'data:image/jpeg;base64,'+u.imageUrl;
+              }
             }
-          }
-        });
-        this.topThreeUsers = users;
+          });
+          this.topThreeUsers = users;
+        }
       });
   }
 

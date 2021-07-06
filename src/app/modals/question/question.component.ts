@@ -46,7 +46,7 @@ export class QuestionComponent implements OnInit {
         validators: [Validators.required, this.selectCatagory.bind(this)]
       }),
       tags: new FormControl(null, {
-        validators: [Validators.required]
+        validators: [Validators.required, Validators.pattern("[/.*\\S.*/]*")]
       }),
       checkbox: new FormControl(undefined),
       checkbox_img: new FormControl(undefined),
@@ -68,20 +68,22 @@ export class QuestionComponent implements OnInit {
 
   comma_pressed(event){
     if(event.key === ',' && this.form.value.tags!==null && this.form.value.tags!==undefined && this.form.value.tags!==',' && this.form.value.tags!==''){
-      this.tags.push(this.form.value.tags);
+      if(this.form.controls['tags'].valid){
+        this.tags.push(this.form.value.tags);
+      }
       //console.log(this.tags);
     }
   }
 
   reset_input(event){
-    if(event.key === ','){
+    if(event.key === ',' && this.form.controls['tags'].valid){
       this.form.patchValue({tags: ''});
       this.form.controls['tags'].setErrors(null);
     }
   }
 
   tagLostFocus(event){
-    if(event.target.value!==null){
+    if(event.target.value!==null && this.form.controls['tags'].valid){
       //console.log(event.target.value);
       if(this.form.value.tags!==null && this.form.value.tags!==undefined && this.form.value.tags!==',' && this.form.value.tags!==''){
         this.tags.push(this.form.value.tags);

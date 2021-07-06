@@ -96,13 +96,17 @@ export class MainQaPage implements OnInit, OnDestroy, DoCheck {
     this.commentsSub = this.appDataService.comments.subscribe(comments=>{
       if(comments){
         comments.map((c, i)=>{
-          if(!c.userImage.startsWith('data:image/jpeg;base64,')){
-            c.userImage = 'data:image/jpeg;base64,'+c.userImage;
+          if(c.userImage){
+            if(!c.userImage.startsWith('data:image/jpeg;base64,')){
+              c.userImage = 'data:image/jpeg;base64,'+c.userImage;
+            }
           }
           if(c.replies){
             for(let r of c.replies){
-              if(!r.userImage.startsWith('data:image/jpeg;base64,')){
-                r.userImage = 'data:image/jpeg;base64,'+r.userImage;
+              if(r.userImage){
+                if(!r.userImage.startsWith('data:image/jpeg;base64,')){
+                  r.userImage = 'data:image/jpeg;base64,'+r.userImage;
+                }
               }
               r.replyToReply = false;
             }
@@ -397,8 +401,9 @@ export class MainQaPage implements OnInit, OnDestroy, DoCheck {
           this.comments[index].replies[replyIndex].replyToReply = false;
           this.ror_form.reset();
         }, err=>{
+          console.log(err);
           this.isCommenting = false;
-          this.showAlert('Could not post a comment.');
+          this.showAlert('Could not post a reply.');
         });
       }else{
         this.toastCtrl.create({message: 'You need to login or signup first before you can start commenting. :-)', duration: 2000})
@@ -422,8 +427,9 @@ export class MainQaPage implements OnInit, OnDestroy, DoCheck {
           this.comments[index].reply = false;
           this.r_form.reset();
         }, err=>{
+          console.log(err);
           this.isCommenting = false;
-          this.showAlert('Could not post a comment.');
+          this.showAlert('Could not post a reply.');
         });
       }else{
         this.toastCtrl.create({message: 'You need to login or signup first before you can start commenting. :-)', duration: 2000})

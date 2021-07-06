@@ -34,6 +34,7 @@ export class SignupComponent implements OnInit {
   isLoading = false;
   form: FormGroup;
   image: string;
+  passPattern: string = "[/.*\S.*/]";
 
   constructor(
     private modalCtrl: ModalController,
@@ -53,10 +54,10 @@ export class SignupComponent implements OnInit {
       }),
       image: new FormControl(null),
       password: new FormControl(null, {
-        validators: [Validators.required, Validators.minLength(6)]
+        validators: [Validators.required, Validators.minLength(6), Validators.pattern("[/.*\\S.*/]*")]
       }),
       c_password: new FormControl(null, {
-        validators: [Validators.required, Validators.minLength(6)]
+        validators: [Validators.required, Validators.minLength(6), Validators.pattern("[/.*\\S.*/]*")]
       }),
       checkbox: new FormControl(undefined, {
         validators: [Validators.required]

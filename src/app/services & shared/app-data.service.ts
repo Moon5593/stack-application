@@ -524,9 +524,9 @@ export class AppDataService implements OnInit{
           oldReply.replyDate,
           oldReply.userRepPoints,
           oldReply.userName,
-          oldReply.userImage,
           oldReply.upvoteReply + 1,
-          oldReply.downvoteReply
+          oldReply.downvoteReply,
+          oldReply.userImage
         );
         return this.http.put(
           `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies/${replyId}.json?auth=${fetchedToken}`,
@@ -563,9 +563,9 @@ export class AppDataService implements OnInit{
           oldReply.replyDate,
           oldReply.userRepPoints,
           oldReply.userName,
-          oldReply.userImage,
           oldReply.upvoteReply,
-          oldReply.downvoteReply - 1
+          oldReply.downvoteReply - 1,
+          oldReply.userImage
         );
         return this.http.put(
           `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies/${replyId}.json?auth=${fetchedToken}`,
@@ -601,9 +601,9 @@ export class AppDataService implements OnInit{
           oldComment.postDate,
           oldComment.userRepPoints,
           oldComment.userName,
-          oldComment.userImage,
           oldComment.upvoteComment,
           oldComment.downvoteComment - 1,
+          oldComment.userImage,
           oldComment.replies,
           oldComment.reply,
           oldComment.atLeastOneUpvote
@@ -647,9 +647,9 @@ export class AppDataService implements OnInit{
           oldComment.postDate,
           oldComment.userRepPoints,
           oldComment.userName,
-          oldComment.userImage,
           oldComment.upvoteComment + 1,
           oldComment.downvoteComment,
+          oldComment.userImage,
           oldComment.replies,
           oldComment.reply,
           oldComment.atLeastOneUpvote
@@ -787,7 +787,7 @@ export class AppDataService implements OnInit{
       take(1),
       switchMap(userImage=>{
         if (!userImage) {
-          throw new Error('No userimage found!');
+          fetchedUserImage = null;
         }
         fetchedUserImage = userImage;
         return this.authService.userPoints;
@@ -827,9 +827,9 @@ export class AppDataService implements OnInit{
           commentTime,
           fetchedUserRepPoints,
           fetchedUsername,
-          fetchedUserImage,
           0,
-          0
+          0,
+          fetchedUserImage
         );
         return this.http.post<{name: string;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments.json?auth=${token}`,
         {
@@ -883,7 +883,7 @@ export class AppDataService implements OnInit{
             oldQuestion.createdBy,
             oldQuestion.createdUserRepPoints,
             oldQuestion.upCount,
-            oldQuestion.downCount - 1,
+            oldQuestion.downCount,
             commentsFetchedLength,
             oldQuestion.userImage
           );
@@ -910,6 +910,7 @@ export class AppDataService implements OnInit{
         return this.http.get<{[key: string]: CommentsAndReplies}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments.json?orderBy="postDate"&limitToFirst=3&auth=${token}`);
       }),
       map(commentData=>{
+        console.log(commentData);
         const comments = [];
         for(const key in commentData){
           let replies = [];
@@ -924,9 +925,9 @@ export class AppDataService implements OnInit{
                   new Date(commentData[key].replies[r].replyDate),
                   commentData[key].replies[r].userRepPoints,
                   commentData[key].replies[r].userName,
-                  commentData[key].replies[r].userImage,
                   commentData[key].replies[r].upvoteReply,
-                  commentData[key].replies[r].downvoteReply
+                  commentData[key].replies[r].downvoteReply,
+                  commentData[key].replies[r].userImage
                 )
               );
             }
@@ -943,9 +944,9 @@ export class AppDataService implements OnInit{
                 new Date(commentData[key].postDate),
                 commentData[key].userRepPoints,
                 commentData[key].userName,
-                commentData[key].userImage,
                 commentData[key].upvoteComment,
                 commentData[key].downvoteComment,
+                commentData[key].userImage,
                 commentData[key].replies,
                 commentData[key].reply,
                 commentData[key].atLeastOneUpvote
@@ -990,9 +991,9 @@ export class AppDataService implements OnInit{
                   new Date(commentData[key].replies[r].replyDate),
                   commentData[key].replies[r].userRepPoints,
                   commentData[key].replies[r].userName,
-                  commentData[key].replies[r].userImage,
                   commentData[key].replies[r].upvoteReply,
-                  commentData[key].replies[r].downvoteReply
+                  commentData[key].replies[r].downvoteReply,
+                  commentData[key].replies[r].userImage
                 )
               );
             }
@@ -1009,9 +1010,9 @@ export class AppDataService implements OnInit{
                 new Date(commentData[key].postDate),
                 commentData[key].userRepPoints,
                 commentData[key].userName,
-                commentData[key].userImage,
                 commentData[key].upvoteComment,
                 commentData[key].downvoteComment,
+                commentData[key].userImage,
                 commentData[key].replies,
                 commentData[key].reply,
                 commentData[key].atLeastOneUpvote
@@ -1047,8 +1048,8 @@ export class AppDataService implements OnInit{
     return this.authService.userImage.pipe(
       take(1),
       switchMap(userImage=>{
-        if (!userImage) {
-          throw new Error('No userimage found!');
+        if(!userImage){
+          fetchedUserImage = null;
         }
         fetchedUserImage = userImage;
         return this.authService.userPoints;
@@ -1087,9 +1088,9 @@ export class AppDataService implements OnInit{
           repliedTime,
           fetchedUserRepPoints,
           fetchedUsername,
-          fetchedUserImage,
           0,
-          0
+          0,
+          fetchedUserImage
         );
         return this.http.post<{name: string;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies.json?auth=${token}`,
         {
@@ -1125,7 +1126,7 @@ export class AppDataService implements OnInit{
       take(1),
       switchMap(userImage=>{
         if (!userImage) {
-          throw new Error('No userimage found!');
+          fetchedUserImage = null;
         }
         fetchedUserImage = userImage;
         return this.authService.userPoints;
@@ -1164,9 +1165,9 @@ export class AppDataService implements OnInit{
           repliedTime,
           fetchedUserRepPoints,
           fetchedUsername,
-          fetchedUserImage,
           0,
-          0
+          0,
+          fetchedUserImage
         );
         return this.http.post<{name: string;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies.json?auth=${token}`,
         {
