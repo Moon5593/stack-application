@@ -4,6 +4,7 @@ import { AlertController, NavController, ToastController } from '@ionic/angular'
 import { AppDataService } from 'src/app/services & shared/app-data.service';
 import { AuthService } from 'src/app/services & shared/auth.service';
 import { Question } from 'src/app/models/question.model';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-question-card',
@@ -27,11 +28,15 @@ export class QuestionCardPage implements OnInit {
   ngOnInit() {}
 
   qaPage(id: string){
-    this.navCtrl.navigateForward([id], {animated: true, animationDirection: 'forward', relativeTo: this.route});
+    this.navCtrl.navigateForward([id], {animated: true, animationDirection: 'forward', relativeTo: this.route, queryParams: {toHighlight: 'from_answer'}});
+  }
+
+  qaPageAnswer(id: string){
+    this.navCtrl.navigateForward([id], {animated: true, animationDirection: 'forward', relativeTo: this.route, queryParams: {toHighlight: 'post_answer'}});
   }
 
   increaseCount(id: string, i: number){
-    this.authService.userIsAuthenticated.subscribe(auth=>{
+    this.authService.userIsAuthenticated.pipe(take(1)).subscribe(auth=>{
       if(auth){
         this.isLoading  = true;
         this.currentIndex = i;
@@ -67,7 +72,7 @@ export class QuestionCardPage implements OnInit {
   }
 
   decreaseCount(id: string, i: number){
-    this.authService.userIsAuthenticated.subscribe(auth=>{
+    this.authService.userIsAuthenticated.pipe(take(1)).subscribe(auth=>{
       if(auth){
         this.isLoading  = true;
         this.currentIndex = i;

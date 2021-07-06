@@ -4,30 +4,16 @@
 .text-toolbar{
     font-size: x-large;
 }
-/*.header-search{
-    width: 20vw;
-    max-width: 300px;
-    --border-radius: 10px;
-    //padding-left: 50px;
-    --background: #fff;
-    --color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.54);
-    ion-text{
-      margin-left: 5px;
-    }
-}*/
 
 .header-search{
-  width: 20vw;
-  max-width: 300px;
+  width: 33vw;
   border-radius: 10px;
-  //padding-left: 50px;
   background: #fff;
   color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.54);
   position: relative;
   font: 400 13.3333px Arial;
   word-spacing: normal;
   padding: 10px;
-  margin-right: 16px;
   span{
     display: flex;
     position: relative;
@@ -44,6 +30,10 @@
       margin-left: 5px;
     }
   }
+}
+
+.header-search:focus{
+  outline: none;
 }
 
 .item_user{

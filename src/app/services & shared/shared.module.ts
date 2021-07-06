@@ -4,7 +4,7 @@ import { ImagePickerComponent } from '../components/image-picker/image-picker.co
 
 @NgModule({
   declarations: [ImagePickerComponent],
-  exports: [CommonModule, ImagePickerComponent],
-  imports: [CommonModule]
+  imports: [CommonModule],
+  exports: [CommonModule, ImagePickerComponent]
 })
 export class SharedModule {}

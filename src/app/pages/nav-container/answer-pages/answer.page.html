@@ -1,0 +1,34 @@
+<div class="ans">
+  <div *ngIf="isLoading" class="ion-text-center">
+    <ion-spinner color="primary"></ion-spinner>
+  </div>
+  <div *ngIf="!isLoading">
+    <div *ngFor="let listC of listComments; index as i">
+      <ion-grid class="ion-no-padding">
+        <ion-row *ngIf="listComments.length<1">
+          <ion-col size="12" class="ion-text-center">
+            <p>No Posts to display. Please refresh.</p>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" class="ion-no-padding">
+            <ion-item-group>
+              <ion-item lines="none">
+                <ion-avatar>
+                  <img [src]="listC?.userImage">
+                </ion-avatar>
+                <ion-text class="ion-padding-start"><span style="color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">added an answer</span> {{ listC.comment }}</ion-text>
+              </ion-item>
+              <ion-item lines="none" style="--min-height: 24px;">
+                <ion-text style="padding-left: 8px; font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">
+                  <span class="ion-margin-start"></span><span class="ion-margin-start"></span>
+                  <span class="ion-margin-start" style="color: var(--ion-color-primary);">{{ listC.postDate | date: 'MMMM d, y, h:mm:ss a' }}</span>
+                </ion-text>
+              </ion-item>
+            </ion-item-group>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
+</div>

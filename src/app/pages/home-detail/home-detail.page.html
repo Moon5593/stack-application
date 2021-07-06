@@ -3,7 +3,7 @@
     <ion-row>
       <ion-col size="12" size-lg="8" size-xl="8" class="ion-no-padding">
         <ion-img class="start-header"></ion-img>
-        <ion-segment scrollable class="hidden-md-down">
+        <ion-segment id="segment" [disabled]="segLoading" value="recent" scrollable class="hidden-md-down" (ionChange)="onFilterUpdate($event)">
           <ion-segment-button value="recent">
             Recent questions
           </ion-segment-button>
@@ -21,7 +21,7 @@
           </ion-segment-button>
         </ion-segment>
 
-        <ion-select [ngModel]="'recent'" mode="ios" class="hidden-lg-up">
+        <ion-select id="selection" [ngModel]="'recent'" mode="ios" class="hidden-lg-up" (ionChange)="selection($event)">
           <ion-select-option value="recent">
             Recent questions
           </ion-select-option>
@@ -54,8 +54,21 @@
           </ion-row>
 
           <ion-row *ngIf="!isLoading && !alertChecked">
+            <ion-col *ngIf="relevantQuestions.length<1" size="12" class="ion-text-center ion-padding-top">
+              Apparently there are no posts currently matching this filter.
+            </ion-col>
             <ion-col size="12">
-              <app-question-card [loadedQuestions]="loadedQuestions"></app-question-card>
+              <app-question-card [loadedQuestions]="relevantQuestions"></app-question-card>
+            </ion-col>
+            <ion-col size="12" class="hidden-md-down">
+              <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!stopScroll">
+                <ion-infinite-scroll-content loadingSpinner="lines">
+                </ion-infinite-scroll-content>
+              </ion-infinite-scroll>
+            </ion-col>
+            <ion-col size="12" *ngIf="!stopScroll && !isClicked" class="hidden-lg-up ion-text-center"><ion-button (click)="setClick()" fill="outline" color="primary">Load more...</ion-button></ion-col>
+            <ion-col size="12" class="hidden-lg-up ion-text-center ion-padding-top" *ngIf="isClicked">
+              <ion-spinner name="lines"></ion-spinner>
             </ion-col>
           </ion-row>
         </ion-grid>

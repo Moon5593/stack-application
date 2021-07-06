@@ -4,38 +4,94 @@
 <ion-grid class="block_grid ion-text-center">
   <ion-row>
     <ion-col size-md="6">
-      block1
+      <ion-card class="ion-no-margin">
+        <ion-card-content>
+          <ion-text color="primary">Questions</ion-text>
+          <ion-text><h1 class="ion-padding-top">{{ totalQues }}</h1></ion-text>
+        </ion-card-content>
+      </ion-card>
     </ion-col>
     <ion-col size-md="6">
-      block2
+      <ion-card class="ion-no-margin">
+        <ion-card-content>
+          <ion-text color="danger">Answers</ion-text>
+          <ion-text><h1 class="ion-padding-top">{{ totalAns }}</h1></ion-text>
+        </ion-card-content>
+      </ion-card>
     </ion-col>
   </ion-row>
 
   <ion-row>
     <ion-col size-md="6">
-      block3
+      <ion-card class="ion-no-margin">
+        <ion-card-content>
+          <ion-text color="success">Best Answers</ion-text>
+          <ion-text><h1 class="ion-padding-top">{{ totalBest || 0 }}</h1></ion-text>
+        </ion-card-content>
+      </ion-card>
     </ion-col>
     <ion-col size-md="6">
-      block4
+      <ion-card class="ion-no-margin">
+        <ion-card-content>
+          <ion-text color="primary">Users</ion-text>
+          <ion-text><h1 class="ion-padding-top">{{ totalUsers }}</h1></ion-text>
+        </ion-card-content>
+      </ion-card>
     </ion-col>
   </ion-row>
 </ion-grid>
 
-<ion-segment class="side-segment">
-  <ion-segment-button value="popular">
-    Popular
-  </ion-segment-button>
-  <ion-segment-button value="answers">
-    Answers
-  </ion-segment-button>
-</ion-segment>
-<ion-card>
-  <ion-card-header>
-    <ion-item lines="none">
+<ion-card class="ion-padding-bottom">
+  <ion-card-header class="ion-no-padding">
+    <ion-segment [disabled]="segLoading" value="popular" class="side-segment" (ionChange)="onFilterUpdate($event)">
+      <ion-segment-button value="popular" mode="ios">
+        Popular
+      </ion-segment-button>
+      <ion-segment-button value="answers" mode="ios">
+        Answers
+      </ion-segment-button>
+    </ion-segment>
+  </ion-card-header>
+  <ion-card-content class="ion-no-padding">
+    <app-popular *ngIf="!switch" class="side-nav"></app-popular>
+    <app-answer *ngIf="switch" class="side-nav"></app-answer>
+  </ion-card-content>
+</ion-card>
+
+<ion-card class="ion-padding-top">
+  <ion-card-header class="ion-no-padding">
+    <ion-item lines="none" class="ion-padding-start">
       <ion-icon name="person-add-outline"></ion-icon>
       <ion-label class="ion-padding-start">Top members</ion-label>
     </ion-item>
   </ion-card-header>
+  <ion-card-content>
+    <ion-grid *ngFor="let user of topThreeUsers;" class="ion-no-padding">
+      <ion-row class="ion-align-self-start">
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-avatar>
+              <img [src]="user?.imageUrl || '../../../assets/icon.png'">
+            </ion-avatar>
+            <ion-grid class="ion-margin-top">
+              <ion-row>
+                <ion-col size="12" class="ion-margin-start">
+                  <p><span>{{ user.name }}</span></p>
+                  <p style="margin: 10px 0;"><span>{{ user.rep_points }} Points</span></p>
+                  <p><span *ngIf="user.rep_points>=10 && user.rep_points<50" class="beginner">Beginner</span></p>
+                  <p><span *ngIf="user.rep_points>=50 && user.rep_points<100" class="teacher">Teacher</span></p>
+                  <p><span *ngIf="user.rep_points>=100 && user.rep_points<150" class="senpai">Senpai</span></p>
+                  <p><span *ngIf="user.rep_points>=150 && user.rep_points<200" class="explainer">Explainer</span></p>
+                  <p><span *ngIf="user.rep_points>=200 && user.rep_points<250" class="professional">Professional</span></p>
+                  <p><span *ngIf="user.rep_points>=250" class="enlightened">Enlightened</span></p>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card-content>
 </ion-card>
 <ion-card>
   <ion-card-header>
@@ -44,4 +100,11 @@
       <ion-label class="ion-padding-start">Trending tags</ion-label>
     </ion-item>
   </ion-card-header>
+  <ion-card-content *ngIf="ques?.length>0">
+    <span *ngFor="let q of ques; let i = index">
+      <ion-chip *ngFor="let tag of q.tags;">
+        <ion-label>{{ tag }}</ion-label>
+      </ion-chip>
+    </span>
+  </ion-card-content>
 </ion-card>

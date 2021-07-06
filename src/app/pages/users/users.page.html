@@ -11,13 +11,13 @@
           </ion-item>
         </ion-item>
         <ion-item-divider class="hidden-lg-up"></ion-item-divider>
-      
+
         <ion-item lines="none">
           <ion-icon name="home-outline"></ion-icon>
             <ion-label class="ion-padding-start">
               <b>Home</b> / Users
             </ion-label>
-      
+
             <ion-select [ngModel]="'registered'" mode="ios" interface="popover">
               <ion-select-option value="registered">
                 Date registered
@@ -32,52 +32,55 @@
                 Reputation points
               </ion-select-option>
             </ion-select>
-      
+
             <ion-searchbar class="hidden-md-down" show-cancel-button="focus" placeholder="Type to find..." animated ></ion-searchbar>
           </ion-item>
         <ion-item-divider></ion-item-divider>
-      
+
         <ion-grid class="ion-no-padding">
-          <ion-row>
-            <ion-col size="12" size-lg="4" class="ion-text-center">
-              <ion-card class="ion-padding">
-                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
-                    <img src="../../../assets/cat.jpg">
-                  </ion-avatar>
-                  <p>Username</p>
-                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
-                  <div style="margin-top: 10px;">
-                    <ion-button color="primary">Follow</ion-button>
-                  </div>
-              </ion-card>
-            </ion-col>
-      
-            <ion-col size="12" size-lg="4" class="ion-text-center">
-              <ion-card class="ion-padding">
-                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
-                    <img src="../../../assets/cat.jpg">
-                  </ion-avatar>
-                  <p>Username</p>
-                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
-                  <div style="margin-top: 10px;">
-                    <ion-button color="primary">Follow</ion-button>
-                  </div>
-              </ion-card>
-            </ion-col>
-      
-            <ion-col size="12" size-lg="4" class="ion-text-center">
-              <ion-card class="ion-padding">
-                  <ion-avatar style="margin: auto; width: 100px; height: 100px;">
-                    <img src="../../../assets/cat.jpg">
-                  </ion-avatar>
-                  <p>Username</p>
-                  <div style="width: fit-content; margin: auto; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">Beginner</div>
-                  <div style="margin-top: 10px;">
-                    <ion-button color="primary">Follow</ion-button>
-                  </div>
-              </ion-card>
+          <ion-row *ngIf="isLoading && !alertChecked">
+            <ion-col size="12" class="ion-text-center">
+              <ion-spinner color="primary"></ion-spinner>
+              <p>Fetching the posts. Please wait...</p>
             </ion-col>
           </ion-row>
+
+          <ion-row *ngIf="alertChecked">
+            <ion-col size="12" class="ion-text-center">
+              <p>No Posts to display. Please refresh.</p>
+            </ion-col>
+          </ion-row>
+
+          <div *ngIf="!isLoading && !alertChecked">
+            <ion-row>
+              <ion-col size="12" size-lg="4" class="ion-text-center" *ngFor="let user of loadedUsers; index as u">
+                <ion-card class="ion-padding">
+                    <ion-avatar style="margin: auto; width: 100px; height: 100px;">
+                      <img [src]="user?.imageUrl || '../../../assets/icon.png'">
+                    </ion-avatar>
+                    <p>{{ user.name }}</p>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=10 && user.rep_points<50" class="beginner">Beginner</div>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=50 && user.rep_points<100" class="teacher">Teacher</div>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=100 && user.rep_points<150" class="senpai">Senpai</div>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=150 && user.rep_points<200" class="explainer">Explainer</div>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=200 && user.rep_points<250" class="professional">Professional</div>
+                    <div style="margin: auto;" *ngIf="user.rep_points>=250" class="enlightened">Enlightened</div>
+                    <div style="margin-top: 10px;">
+                      <ion-button color="primary">Follow</ion-button>
+                    </div>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+
+            <ion-row>
+              <ion-col size="12">
+                <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!stopScroll">
+                  <ion-infinite-scroll-content loadingSpinner="lines">
+                  </ion-infinite-scroll-content>
+                </ion-infinite-scroll>
+              </ion-col>
+            </ion-row>
+          </div>
         </ion-grid>
       </ion-col>
       <ion-col size="12" size-lg="4" size-xl="4" class="ion-no-padding">
@@ -85,5 +88,5 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  
+
 </ion-content>

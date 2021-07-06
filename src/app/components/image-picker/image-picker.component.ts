@@ -5,7 +5,8 @@ import {
   EventEmitter,
   ViewChild,
   ElementRef,
-  Input
+  Input,
+  forwardRef
 } from '@angular/core';
 import {
   Plugins,
@@ -13,13 +14,19 @@ import {
   CameraSource,
   CameraResultType
 } from '@capacitor/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-image-picker',
   templateUrl: './image-picker.component.html',
-  styleUrls: ['./image-picker.component.scss']
+  styleUrls: ['./image-picker.component.scss'],
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    multi: true,
+    useExisting: forwardRef(() => ImagePickerComponent)
+  }]
 })
-export class ImagePickerComponent implements OnInit {
+export class ImagePickerComponent implements OnInit, ControlValueAccessor {
   @ViewChild('filePicker') filePickerRef: ElementRef<HTMLInputElement>;
   @Output() imagePick = new EventEmitter<string | File>();
   @Input() showPreview = false;
@@ -28,6 +35,12 @@ export class ImagePickerComponent implements OnInit {
   @Input() signupMode = false;
 
   constructor() {}
+  writeValue(obj: any): void {
+    console.log(obj);
+  }
+  registerOnChange(fn: any): void {}
+  registerOnTouched(fn: any): void {}
+  setDisabledState?(isDisabled: boolean): void {}
 
   ngOnInit() {}
 

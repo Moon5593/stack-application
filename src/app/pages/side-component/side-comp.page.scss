@@ -5,5 +5,12 @@
 
 ion-segment.side-segment{
     margin: 10px;
-    width: min-content;
+    width: 70%;
 }
+
+ion-segment ion-segment-button{
+    padding: 10px;
+    --indicator-color: #E5E7EB;
+    --color-checked: var(--ion-color-primary);
+}
+

@@ -2,12 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { Plugins } from '@capacitor/core';
 import { BehaviorSubject, from, of, Subject } from 'rxjs';
-import { map, switchMap, take, tap } from 'rxjs/operators';
-import { AuthService, TotalData } from './auth.service';
+import { delay, map, mergeMap, switchMap, take, tap } from 'rxjs/operators';
+import { AuthService } from './auth.service';
 import { Question } from '../models/question.model';
 import { Comment } from '../models/comment.model';
 import { Replies } from '../models/replies.model';
-import { Totals } from '../models/totals.model';
+import { NavController } from '@ionic/angular';
 
 export interface AppQuestions{
   anonymous?: boolean;
@@ -23,10 +23,11 @@ export interface AppQuestions{
   userId: string;
   add_answers?: string[];
   createdBy: string;
-  createdUserBadge: string;
+  createdUserRepPoints: number;
   upCount: number;
   downCount: number;
-  userImage: string;
+  totalComments: number;
+  userImage?: string;
 }
 
 export interface CommentsAndReplies{
@@ -34,28 +35,46 @@ export interface CommentsAndReplies{
   comment: string;
   postId: string;
   postDate: Date;
-  userBadge: string;
+  userRepPoints: number;
   userName: string;
   userImage: string;
   upvoteComment: number;
   downvoteComment: number;
-  replies?: Replies[]
+  replies?: Replies[];
+  reply?: boolean;
+  atLeastOneUpvote?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppDataService implements OnInit{
-  icon = new Subject<boolean>();
+  public icon = new Subject<boolean>();
   private _questions = new BehaviorSubject<Question[]>([]);
+  private _tQuestions = new BehaviorSubject<Question[]>([]);
   private _comments = new BehaviorSubject<Comment[]>([]);
+  private _tComments = new BehaviorSubject<Comment[]>([]);
   private _replies = new BehaviorSubject<Comment[]>([]);
   public clickEmitter = new Subject<boolean>();
   private _totalComments = new BehaviorSubject<Comment[]>([]);
   private totalC: any[] = [];
   public loadingEmitter = new Subject<boolean>();
+  public cLoadingEmitter = new Subject<boolean>();
+  private latestKey: string;
+  public stopScroll = new Subject<boolean>();
+  private runtimeQLength: number;
+  public listQ = [];
+  public listA = [];
+  //public listB = [];
+  private postIds = [];
+  public bestA: number = 0;
+  private _listQ = new BehaviorSubject<any[]>([]);
+  private _listA = new BehaviorSubject<any[]>([]);
+  private _bestA = new BehaviorSubject<number>(0);
+  public networkStatusRunTime = new Subject<boolean>();
+  public tagsList = [];
 
-  constructor(private authService: AuthService, private http: HttpClient) {}
+  constructor(private authService: AuthService, private http: HttpClient, private navCtrl: NavController) {}
 
   get questions(){
     return this._questions.asObservable();
@@ -63,6 +82,14 @@ export class AppDataService implements OnInit{
 
   get comments(){
     return this._comments.asObservable();
+  }
+
+  get tComments(){
+    return this._tComments.asObservable();
+  }
+
+  get tQuestions(){
+    return this._tQuestions.asObservable();
   }
 
   get totalComments(){
@@ -73,9 +100,23 @@ export class AppDataService implements OnInit{
     return this._replies.asObservable();
   }
 
+  get totalListQues(){
+    return this._listQ.asObservable();
+  }
+
+  get totalListAns(){
+    return this._listA.asObservable();
+  }
+
+  get bestAns(){
+    return this._bestA.asObservable();
+  }
+
   ngOnInit(){}
 
   getQuestion(id: string){
+    let question: Question;
+    let updatedQuestion: Question[];
     return this.authService.token.pipe(
       take(1),
       switchMap(token => {
@@ -90,8 +131,8 @@ export class AppDataService implements OnInit{
           `https://stack-app-8a187-default-rtdb.firebaseio.com/questions/${id}.json?auth=${token}`
         );
       }),
-      map(questionData => {
-        return new Question(
+      switchMap(questionData => {
+        question = new Question(
           id,
           questionData.userId,
           questionData.question,
@@ -106,11 +147,27 @@ export class AppDataService implements OnInit{
           questionData.notif,
           questionData.policy,
           questionData.createdBy,
-          questionData.createdUserBadge,
+          questionData.createdUserRepPoints,
           questionData.upCount,
           questionData.downCount,
+          questionData.totalComments,
           questionData.userImage
         );
+        return this.questions;
+      }),
+      take(1),
+      map(questions=>{
+        const questionIndex = questions.findIndex(q=>q.id===id);
+          if(questionIndex !== -1){
+            updatedQuestion = [...questions];
+            updatedQuestion[questionIndex] = question;
+            this._questions.next(updatedQuestion);
+          }else{
+            questions[0] = question;
+            this._questions.next(questions);
+          }
+          return question;
+        //this._questions.next(question);
       })
     );
   }
@@ -132,24 +189,21 @@ export class AppDataService implements OnInit{
     let post: Question;
     let generatedId: string;
     let fetchedUsername: string;
-    let fetchedUserBadge: string;
+    let fetchedUserPoints: number;
     let fetchedUserImage: string;
 
     return this.authService.userImage.pipe(
       take(1),
       switchMap(userImage=>{
-        if (!userImage) {
-          throw new Error('No userimage found!');
-        }
         fetchedUserImage = userImage;
-        return this.authService.userBadge;
+        return this.authService.userPoints;
       }),
       take(1),
-      switchMap(userBadge=>{
-        if (!userBadge) {
-          throw new Error('No userbadge found!');
+      switchMap(userPoints=>{
+        if (!userPoints) {
+          fetchedUserPoints = 0;
         }
-        fetchedUserBadge = userBadge;
+        fetchedUserPoints = userPoints;
         return this.authService.userName;
       }),
       take(1),
@@ -185,7 +239,8 @@ export class AppDataService implements OnInit{
           notif,
           policy,
           fetchedUsername,
-          fetchedUserBadge,
+          fetchedUserPoints,
+          0,
           0,
           0,
           fetchedUserImage
@@ -203,39 +258,23 @@ export class AppDataService implements OnInit{
       take(1),
       tap(questions=>{
         post.id = generatedId;
-        this._questions.next(questions.concat(post));
-      })
-    );
-  }
-
-  setQuestionTotal(){
-    let fetchedToken;
-    let total;
-    return this.authService.token
-    .pipe(
-      take(1),
-      switchMap(token=>{
-        fetchedToken = token;
-        return this.http.get<{[key: string]: TotalData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`);
-      }),
-      switchMap(totalData=>{
-        for(let key in totalData){
-          if(totalData.hasOwnProperty(key)){
-            total = new Totals(
-              totalData[key].users,
-              totalData[key].questions+1,
-              totalData[key].answers,
-              totalData[key].best_answers
-            );
-          }
+        if(!questions){
+          questions = [];
+          this._questions.next(questions.concat(post));
+        }else{
+          this._questions.next(questions.concat(post));
         }
-        return this.http.put(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`,
-        {...total});
+        setTimeout(() => {
+          this.listQ.push(post.id);
+          this._listQ.next(this.listQ);
+          this.navCtrl.navigateForward(`/app/home/${post.id}`, {animated: true, animationDirection: 'forward'});
+        }, 1000);
       })
     );
   }
 
-  fetchQuestions(){
+  fetchTTQuestions(){
+    let tokenData;
     return this.authService.token.pipe(
       take(1),
       switchMap(token=>{
@@ -246,7 +285,23 @@ export class AppDataService implements OnInit{
         }
       }),
       switchMap(token=>{
-        return this.http.get<{[key: string]: AppQuestions}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?auth=${token}`);
+        tokenData = token;
+        if(this.listQ.length<1){
+          return this.http.get<{[key: string]: boolean;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?shallow=true&auth=${token}`);
+        }
+        return of(null);
+      }),
+      switchMap(dataReturned=>{
+        if(dataReturned){
+          for(const key in dataReturned){
+            if(dataReturned.hasOwnProperty(key)){
+              this.listQ.push(key);
+            }
+          }
+          this._listQ.next(this.listQ);
+          //this.valInit.next(true);
+        }
+        return this.http.get<{[key: string]: AppQuestions}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?orderBy="totalComments"&limitToLast=3&auth=${tokenData}`);
       }),
       map(questionData=>{
         const questions = [];
@@ -268,9 +323,10 @@ export class AppDataService implements OnInit{
                 questionData[key].notif,
                 questionData[key].policy,
                 questionData[key].createdBy,
-                questionData[key].createdUserBadge,
+                questionData[key].createdUserRepPoints,
                 questionData[key].upCount,
                 questionData[key].downCount,
+                questionData[key].totalComments,
                 questionData[key].userImage
               )
             );
@@ -279,7 +335,332 @@ export class AppDataService implements OnInit{
         return questions;
       }),
       tap(questions=>{
-        this._questions.next(questions);
+        questions.map(q=>{
+          if(q.userImage){
+            if(!q.userImage.startsWith('data:image/jpeg;base64,')){
+              q.userImage = 'data:image/jpeg;base64,'+q.userImage;
+            }
+          }
+        });
+        this._tQuestions.next(questions);
+      })
+    );
+  }
+
+  fetchQuestions(questionLength?: number){
+    let tokenData;
+    this.runtimeQLength = questionLength;
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        if(!token){
+          return this.authService.aToken;
+        }else{
+          return of(token);
+        }
+      }),
+      switchMap(token=>{
+        tokenData = token;
+        if(this.listQ.length<1){
+          return this.http.get<{[key: string]: boolean;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?shallow=true&auth=${token}`);
+        }
+        return of(null);
+      }),
+      switchMap(dataReturned=>{
+        if(dataReturned){
+          for(const key in dataReturned){
+            if(dataReturned.hasOwnProperty(key)){
+              this.listQ.push(key);
+            }
+          }
+          this._listQ.next(this.listQ);
+          //this.valInit.next(true);
+        }
+
+        if(!this.latestKey){
+          return this.http.get<{[key: string]: AppQuestions}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?orderBy="$key"&limitToFirst=3&auth=${tokenData}`);
+        }
+        if((this.listQ.length - this.runtimeQLength)<3){
+          let limitToL = this.listQ.length - this.runtimeQLength;
+          if(limitToL>0){
+            return this.http.get<{[key: string]: AppQuestions}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?orderBy="$key"&startAt="${this.latestKey+1}"&limitToLast=${limitToL}&auth=${tokenData}`);
+          }
+        }
+        return this.http.get<{[key: string]: AppQuestions}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/questions.json?orderBy="$key"&startAt="${this.latestKey+1}"&limitToFirst=3&auth=${tokenData}`);
+      }),
+      map(questionData=>{
+        if(!questionData){
+          this.stopScroll.next(true);
+          return;
+        }
+        const questions = [];
+        for(const key in questionData){
+          if(questionData.hasOwnProperty(key)){
+            questions.push(
+              new Question(
+                key,
+                questionData[key].userId,
+                questionData[key].question,
+                questionData[key].catagory,
+                questionData[key].tags,
+                questionData[key].add_answers,
+                questionData[key].imageData,
+                questionData[key].details,
+                new Date(questionData[key].postDate),
+                questionData[key].anonymous,
+                questionData[key].private_question,
+                questionData[key].notif,
+                questionData[key].policy,
+                questionData[key].createdBy,
+                questionData[key].createdUserRepPoints,
+                questionData[key].upCount,
+                questionData[key].downCount,
+                questionData[key].totalComments,
+                questionData[key].userImage
+              )
+            );
+            this.latestKey = key;
+          }
+        }
+        return questions;
+      }),
+      tap(questions=>{
+        if(!this.latestKey){
+          this._questions.next(questions);
+        }else{
+          if(questions){
+            this.questions.pipe(take(1)).subscribe(q=>{
+              if(!q){
+                q = [];
+                this._questions.next(q.concat(questions));
+              }else{
+                this._questions.next(q.concat(questions));
+              }
+            });
+          }
+        }
+      })
+    );
+  }
+
+  fetchTotalAnswers(){
+    let token;
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        if(!token){
+          return this.authService.aToken;
+        }else{
+          return of(token);
+        }
+      }),
+      switchMap(tokenData=>{
+        token = tokenData;
+        if(this.listA.length<1){
+          return this.http.get<{[key: string]: boolean;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments.json?shallow=true&auth=${token}`);
+        }
+        return of(null);
+      }),
+      switchMap(AKeyReturned=>{
+        if(AKeyReturned){
+          for(const key in AKeyReturned){
+            if(AKeyReturned.hasOwnProperty(key)){
+              this.listA.push(key);
+            }
+          }
+          this._listA.next(this.listA);
+          console.log(this.listA);
+        }
+        return of(this.listA);
+      }),
+      map(listA=>{
+        from(listA).pipe(
+          //takeUntil(this.valInit),
+          //repeatWhen(()=>this.valInit),
+          mergeMap(dataFrom=>{
+            return this.http.get(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${dataFrom}/atLeastOneUpvote.json?shallow=true&auth=${token}`);
+          }),
+          tap(setFetched=>{
+            this.postIds.push(setFetched);
+          })
+        ).subscribe(
+          next=>{},
+          err=>{},
+          ()=>{
+            let obj = {};
+            this.postIds.sort();
+            for(let p of this.postIds){
+              obj[p] = ++obj[p] || 1;
+            }
+            this.bestA = obj['true'];
+            this._bestA.next(this.bestA);
+            console.log(obj);
+          });
+      })
+    );
+  }
+
+  upvoteReply(commentId: string, replyId: string){
+    let fetchedToken: string;
+    let updatedComments: Comment[];
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        fetchedToken = token;
+        return this.comments;
+      }),
+      take(1),
+      switchMap(comments=>{
+        const updatedCommentIndex = comments.findIndex(q => q.id === commentId);
+        updatedComments = [...comments];
+        const oldReplyIndex = updatedComments[updatedCommentIndex].replies.findIndex(r => r.id === replyId);
+        const oldReply = updatedComments[updatedCommentIndex].replies[oldReplyIndex];
+
+        updatedComments[updatedCommentIndex].replies[oldReplyIndex] = new Replies(
+          oldReply.id,
+          oldReply.replyUserId,
+          oldReply.replyTo,
+          oldReply.reply,
+          oldReply.replyDate,
+          oldReply.userRepPoints,
+          oldReply.userName,
+          oldReply.userImage,
+          oldReply.upvoteReply + 1,
+          oldReply.downvoteReply
+        );
+        return this.http.put(
+          `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies/${replyId}.json?auth=${fetchedToken}`,
+          { ...updatedComments[updatedCommentIndex].replies[oldReplyIndex], id: null }
+        );
+      }),
+      tap(() => {
+        this._comments.next(updatedComments);
+      })
+    );
+  }
+
+  downvoteReply(commentId: string, replyId: string){
+    let fetchedToken: string;
+    let updatedComments: Comment[];
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        fetchedToken = token;
+        return this.comments;
+      }),
+      take(1),
+      switchMap(comments=>{
+        const updatedCommentIndex = comments.findIndex(q => q.id === commentId);
+        updatedComments = [...comments];
+        const oldReplyIndex = updatedComments[updatedCommentIndex].replies.findIndex(r => r.id === replyId);
+        const oldReply = updatedComments[updatedCommentIndex].replies[oldReplyIndex];
+
+        updatedComments[updatedCommentIndex].replies[oldReplyIndex] = new Replies(
+          oldReply.id,
+          oldReply.replyUserId,
+          oldReply.replyTo,
+          oldReply.reply,
+          oldReply.replyDate,
+          oldReply.userRepPoints,
+          oldReply.userName,
+          oldReply.userImage,
+          oldReply.upvoteReply,
+          oldReply.downvoteReply - 1
+        );
+        return this.http.put(
+          `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${commentId}/replies/${replyId}.json?auth=${fetchedToken}`,
+          { ...updatedComments[updatedCommentIndex].replies[oldReplyIndex], id: null }
+        );
+      }),
+      tap(() => {
+        this._comments.next(updatedComments);
+      })
+    );
+  }
+
+  downvoteComment(id: string){
+    let fetchedToken: string;
+    let updatedComments: Comment[];
+
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        fetchedToken = token;
+        return this.comments;
+      }),
+      take(1),
+      switchMap(comments=>{
+        const updatedCommentIndex = comments.findIndex(q => q.id === id);
+        updatedComments = [...comments];
+        const oldComment = updatedComments[updatedCommentIndex];
+        updatedComments[updatedCommentIndex] = new Comment(
+          oldComment.id,
+          oldComment.commentUserId,
+          oldComment.comment,
+          oldComment.postId,
+          oldComment.postDate,
+          oldComment.userRepPoints,
+          oldComment.userName,
+          oldComment.userImage,
+          oldComment.upvoteComment,
+          oldComment.downvoteComment - 1,
+          oldComment.replies,
+          oldComment.reply,
+          oldComment.atLeastOneUpvote
+        );
+        return this.http.put(
+          `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${id}.json?auth=${fetchedToken}`,
+          { ...updatedComments[updatedCommentIndex], id: null }
+        );
+      }),
+      tap(() => {
+        this._comments.next(updatedComments);
+      })
+    );
+  }
+
+  upvoteComment(id: string){
+    let fetchedToken: string;
+    let updatedComments: Comment[];
+
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        fetchedToken = token;
+        return this.comments;
+      }),
+      take(1),
+      switchMap(comments=>{
+        const updatedCommentIndex = comments.findIndex(q => q.id === id);
+        updatedComments = [...comments];
+        const oldComment = updatedComments[updatedCommentIndex];
+        const isTrue = comments.findIndex(t => t.atLeastOneUpvote === true);
+        if(isTrue === -1){
+          this._bestA.next(this.bestA+1);
+          oldComment.atLeastOneUpvote = true;
+        }
+        updatedComments[updatedCommentIndex] = new Comment(
+          oldComment.id,
+          oldComment.commentUserId,
+          oldComment.comment,
+          oldComment.postId,
+          oldComment.postDate,
+          oldComment.userRepPoints,
+          oldComment.userName,
+          oldComment.userImage,
+          oldComment.upvoteComment + 1,
+          oldComment.downvoteComment,
+          oldComment.replies,
+          oldComment.reply,
+          oldComment.atLeastOneUpvote
+        );
+        return this.http.put(
+          `https://stack-app-8a187-default-rtdb.firebaseio.com/comments/${id}.json?auth=${fetchedToken}`,
+          { ...updatedComments[updatedCommentIndex], id: null }
+        );
+      }),
+      tap(() => {
+        this._comments.next(updatedComments);
       })
     );
   }
@@ -321,9 +702,10 @@ export class AppDataService implements OnInit{
           oldQuestion.notif,
           oldQuestion.policy,
           oldQuestion.createdBy,
-          oldQuestion.createdUserBadge,
+          oldQuestion.createdUserRepPoints,
           oldQuestion.upCount + 1,
           oldQuestion.downCount,
+          oldQuestion.totalComments,
           oldQuestion.userImage
         );
         return this.http.put(
@@ -374,9 +756,10 @@ export class AppDataService implements OnInit{
           oldQuestion.notif,
           oldQuestion.policy,
           oldQuestion.createdBy,
-          oldQuestion.createdUserBadge,
+          oldQuestion.createdUserRepPoints,
           oldQuestion.upCount,
           oldQuestion.downCount - 1,
+          oldQuestion.totalComments,
           oldQuestion.userImage
         );
         return this.http.put(
@@ -395,8 +778,10 @@ export class AppDataService implements OnInit{
     let comment: Comment;
     let generatedId: string;
     let fetchedUsername: string;
-    let fetchedUserBadge: string;
+    let fetchedUserRepPoints: number;
     let fetchedUserImage: string;
+    let token: string;
+    let commentsFetchedLength: number;
 
     return this.authService.userImage.pipe(
       take(1),
@@ -405,14 +790,14 @@ export class AppDataService implements OnInit{
           throw new Error('No userimage found!');
         }
         fetchedUserImage = userImage;
-        return this.authService.userBadge;
+        return this.authService.userPoints;
       }),
       take(1),
-      switchMap(userBadge=>{
-        if (!userBadge) {
-          throw new Error('No userbadge found!');
+      switchMap(userPoints=>{
+        if (!userPoints) {
+          fetchedUserRepPoints = 0;
         }
-        fetchedUserBadge = userBadge;
+        fetchedUserRepPoints = userPoints;
         return this.authService.userName;
       }),
       take(1),
@@ -432,14 +817,15 @@ export class AppDataService implements OnInit{
         return this.authService.token;
       }),
       take(1),
-      switchMap(token=>{
+      switchMap(fetchedToken=>{
+        token = fetchedToken;
         comment = new Comment(
           Math.random().toString(),
           fetchedUserId,
           details,
           postId,
           commentTime,
-          fetchedUserBadge,
+          fetchedUserRepPoints,
           fetchedUsername,
           fetchedUserImage,
           0,
@@ -456,9 +842,122 @@ export class AppDataService implements OnInit{
         return this.comments;
       }),
       take(1),
-      tap(comments=>{
+      switchMap(comments=>{
         comment.id = generatedId;
+        this.listA.push(comment.id);
+        this._listA.next(this.listA);
         this._comments.next(comments.concat(comment));
+        return this.comments;
+      }),
+      take(1),
+      switchMap(comments=>{
+        return this.http.put(
+          `https://stack-app-8a187-default-rtdb.firebaseio.com/questions/${postId}/totalComments.json?auth=${token}`,
+          comments.length
+        );
+      }),
+      switchMap(cLength=>{
+        commentsFetchedLength = cLength;
+        return this.questions;
+      }),
+      take(1),
+      tap(questions=>{
+        if(questions.length>0){
+          const updatedQuestionIndex = questions.findIndex(q => q.id === postId);
+          let updatedQuestions = [...questions];
+          const oldQuestion = updatedQuestions[updatedQuestionIndex];
+          updatedQuestions[updatedQuestionIndex] = new Question(
+            oldQuestion.id,
+            oldQuestion.userId,
+            oldQuestion.question,
+            oldQuestion.catagory,
+            oldQuestion.tags,
+            oldQuestion.add_answers,
+            oldQuestion.imageData,
+            oldQuestion.details,
+            oldQuestion.postDate,
+            oldQuestion.anonymous,
+            oldQuestion.private_question,
+            oldQuestion.notif,
+            oldQuestion.policy,
+            oldQuestion.createdBy,
+            oldQuestion.createdUserRepPoints,
+            oldQuestion.upCount,
+            oldQuestion.downCount - 1,
+            commentsFetchedLength,
+            oldQuestion.userImage
+          );
+          this._questions.next(updatedQuestions);
+        }
+
+      })
+    );
+  }
+
+  fetchTopComments(){
+    this.cLoadingEmitter.next(true);
+    this._tComments.next([]);
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token=>{
+        if(!token){
+          return this.authService.aToken;
+        }else{
+          return of(token);
+        }
+      }),
+      switchMap(token=>{
+        return this.http.get<{[key: string]: CommentsAndReplies}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/comments.json?orderBy="postDate"&limitToFirst=3&auth=${token}`);
+      }),
+      map(commentData=>{
+        const comments = [];
+        for(const key in commentData){
+          let replies = [];
+          for(let r in commentData[key].replies){
+            if(commentData[key].replies.hasOwnProperty(r)){
+              replies.push(
+                new Replies(
+                  r,
+                  commentData[key].replies[r].replyUserId,
+                  commentData[key].replies[r].replyTo,
+                  commentData[key].replies[r].reply,
+                  new Date(commentData[key].replies[r].replyDate),
+                  commentData[key].replies[r].userRepPoints,
+                  commentData[key].replies[r].userName,
+                  commentData[key].replies[r].userImage,
+                  commentData[key].replies[r].upvoteReply,
+                  commentData[key].replies[r].downvoteReply
+                )
+              );
+            }
+          }
+          commentData[key].replies = replies;
+          this._replies.next(replies);
+          if(commentData.hasOwnProperty(key)){
+            comments.push(
+              new Comment(
+                key,
+                commentData[key].commentUserId,
+                commentData[key].comment,
+                commentData[key].postId,
+                new Date(commentData[key].postDate),
+                commentData[key].userRepPoints,
+                commentData[key].userName,
+                commentData[key].userImage,
+                commentData[key].upvoteComment,
+                commentData[key].downvoteComment,
+                commentData[key].replies,
+                commentData[key].reply,
+                commentData[key].atLeastOneUpvote
+              )
+            );
+          }
+        }
+        return comments;
+      }),
+      tap(comments=>{
+        comments = comments.reverse();
+        this._tComments.next(comments);
       })
     );
   }
@@ -489,7 +988,7 @@ export class AppDataService implements OnInit{
                   commentData[key].replies[r].replyTo,
                   commentData[key].replies[r].reply,
                   new Date(commentData[key].replies[r].replyDate),
-                  commentData[key].replies[r].userBadge,
+                  commentData[key].replies[r].userRepPoints,
                   commentData[key].replies[r].userName,
                   commentData[key].replies[r].userImage,
                   commentData[key].replies[r].upvoteReply,
@@ -508,12 +1007,14 @@ export class AppDataService implements OnInit{
                 commentData[key].comment,
                 commentData[key].postId,
                 new Date(commentData[key].postDate),
-                commentData[key].userBadge,
+                commentData[key].userRepPoints,
                 commentData[key].userName,
                 commentData[key].userImage,
                 commentData[key].upvoteComment,
                 commentData[key].downvoteComment,
-                commentData[key].replies
+                commentData[key].replies,
+                commentData[key].reply,
+                commentData[key].atLeastOneUpvote
               )
             );
           }
@@ -540,7 +1041,7 @@ export class AppDataService implements OnInit{
     let reply: Replies;
     let generatedId: string;
     let fetchedUsername: string;
-    let fetchedUserBadge: string;
+    let fetchedUserRepPoints: number;
     let fetchedUserImage: string;
 
     return this.authService.userImage.pipe(
@@ -550,14 +1051,14 @@ export class AppDataService implements OnInit{
           throw new Error('No userimage found!');
         }
         fetchedUserImage = userImage;
-        return this.authService.userBadge;
+        return this.authService.userPoints;
       }),
       take(1),
-      switchMap(userBadge=>{
-        if (!userBadge) {
-          throw new Error('No userbadge found!');
+      switchMap(userPoints=>{
+        if (!userPoints) {
+          fetchedUserRepPoints = 0;
         }
-        fetchedUserBadge = userBadge;
+        fetchedUserRepPoints = userPoints;
         return this.authService.userName;
       }),
       take(1),
@@ -584,7 +1085,7 @@ export class AppDataService implements OnInit{
           commentId,
           details,
           repliedTime,
-          fetchedUserBadge,
+          fetchedUserRepPoints,
           fetchedUsername,
           fetchedUserImage,
           0,
@@ -603,7 +1104,6 @@ export class AppDataService implements OnInit{
       take(1),
       tap(comments=>{
         reply.id = generatedId;
-        console.log('in reply');
         if(!comments[commentIndex].replies){
           comments[commentIndex].replies = [];
         }
@@ -618,7 +1118,7 @@ export class AppDataService implements OnInit{
     let reply: Replies;
     let generatedId: string;
     let fetchedUsername: string;
-    let fetchedUserBadge: string;
+    let fetchedUserRepPoints: number;
     let fetchedUserImage: string;
 
     return this.authService.userImage.pipe(
@@ -628,14 +1128,14 @@ export class AppDataService implements OnInit{
           throw new Error('No userimage found!');
         }
         fetchedUserImage = userImage;
-        return this.authService.userBadge;
+        return this.authService.userPoints;
       }),
       take(1),
-      switchMap(userBadge=>{
-        if (!userBadge) {
-          throw new Error('No userbadge found!');
+      switchMap(userPoints=>{
+        if (!userPoints) {
+          fetchedUserRepPoints = 0;
         }
-        fetchedUserBadge = userBadge;
+        fetchedUserRepPoints = userPoints;
         return this.authService.userName;
       }),
       take(1),
@@ -662,7 +1162,7 @@ export class AppDataService implements OnInit{
           repliedToId,
           details,
           repliedTime,
-          fetchedUserBadge,
+          fetchedUserRepPoints,
           fetchedUsername,
           fetchedUserImage,
           0,
@@ -687,4 +1187,5 @@ export class AppDataService implements OnInit{
     );
 
   }
+
 }

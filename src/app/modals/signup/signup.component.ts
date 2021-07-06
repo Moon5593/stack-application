@@ -97,9 +97,7 @@ export class SignupComponent implements OnInit {
             this.form.reset();
             this.isLoading = false;
             loadingEl.dismiss();
-            this.authS.setTotals().subscribe(()=>{
-              this.modalCtrl.dismiss({}, 'confirm');
-            });
+            this.modalCtrl.dismiss({}, 'confirm');
           },
           errRes => {
             loadingEl.dismiss();

@@ -73,14 +73,16 @@ export class SearchComponent implements OnInit, OnDestroy {
     )
     .subscribe(data=>{
       this.recents = data;
-      if(this.recents.length<1){
-        this.no_recents = true;
-      }
-      for(let r of this.recents){
-        if(r.hasOwnProperty('post')){
-          this.recentsC.push(r);
-        }else{
-          this.recentsQ.push(r);
+      if(this.recents){
+        if(this.recents.length<1){
+          this.no_recents = true;
+        }
+        for(let r of this.recents){
+          if(r.hasOwnProperty('post')){
+            this.recentsC.push(r);
+          }else{
+            this.recentsQ.push(r);
+          }
         }
       }
     });
@@ -145,6 +147,9 @@ export class SearchComponent implements OnInit, OnDestroy {
           });
 
           Plugins.Storage.set({ key: 'recents', value: JSON.stringify(recentData) });
+          setTimeout(() => {
+            this.appDataService.clickEmitter.next(true);
+          }, 50);
           return EMPTY;
         }else{
           const data = JSON.parse(fetchedData.value) as Recents[];
@@ -183,6 +188,9 @@ export class SearchComponent implements OnInit, OnDestroy {
           });
 
           Plugins.Storage.set({ key: 'recents', value: JSON.stringify(recentData) });
+          setTimeout(() => {
+            this.appDataService.clickEmitter.next(true);
+          }, 50);
           return EMPTY;
         }else{
           const data = JSON.parse(fetchedData.value) as Recents[];

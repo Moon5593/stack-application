@@ -14,9 +14,10 @@ export class Question{
         public notif: boolean,
         public policy: boolean,
         public createdBy: string,
-        public createdUserBadge: string,
+        public createdUserRepPoints: number,
         public upCount: number,
         public downCount: number,
+        public totalComments: number,
         public userImage: string
     ){}
 }

@@ -9,7 +9,12 @@
             </ion-avatar>
             <ion-text style="color: var(--ion-color-primary);">
               <b>{{ question?.createdBy }}</b>
-              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question?.createdUserBadge }}</span>
+              <span class="ion-margin-start beginner" *ngIf="question?.createdUserRepPoints>=10 && question?.createdUserRepPoints<50">Beginner</span>
+              <span class="ion-margin-start teacher" *ngIf="question?.createdUserRepPoints>=50 && question?.createdUserRepPoints<100">Teacher</span>
+              <span class="ion-margin-start senpai" *ngIf="question?.createdUserRepPoints>=100 && question?.createdUserRepPoints<150">Senpai</span>
+              <span class="ion-margin-start explainer" *ngIf="question?.createdUserRepPoints>=150 && question?.createdUserRepPoints<200">Explainer</span>
+              <span class="ion-margin-start professional" *ngIf="question?.createdUserRepPoints>=200 && question?.createdUserRepPoints<250">Professional</span>
+              <span class="ion-margin-start enlightened" *ngIf="question?.createdUserRepPoints>=250">Enlightened</span>
               <span class="ion-margin-start" style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question?.postDate | date: 'longDate' }}</span></span>
             </ion-text>
           </ion-item>
@@ -23,13 +28,33 @@
           <ion-grid>
             <ion-row>
               <ion-col size="2" class="ion-text-center">
-                <ion-icon style="cursor: pointer;" (click)="increaseCount(question.id, i)" name="caret-up-outline"></ion-icon>
+                <ion-icon style="cursor: pointer;" (click)="increaseCount(question.id)" name="caret-up-outline"></ion-icon>
                 <p>
-                  <b *ngIf="!isLoading || (currentIndex!==i)">{{ question?.upCount + question?.downCount }}</b>
-                  <ion-spinner color="primary" *ngIf="isLoading && (currentIndex===i)"></ion-spinner>
+                  <b *ngIf="!isVoteLoading">{{ question?.upCount + question?.downCount }}</b>
+                  <ion-spinner color="primary" *ngIf="isVoteLoading"></ion-spinner>
                 </p>
-                <ion-icon style="cursor: pointer;" (click)="decreaseCount(question.id, i)" name="caret-down-outline"></ion-icon>
+                <ion-icon style="cursor: pointer;" (click)="decreaseCount(question.id)" name="caret-down-outline"></ion-icon>
               </ion-col>
+              <ion-col size="10" class="ion-no-padding" *ngIf="question?.add_answers">
+                <ion-card class="poll-card ion-padding-bottom">
+                  <ion-item lines="none">
+                    <ion-icon name="help-circle"></ion-icon>
+                    <ion-label class="ion-padding-start">Participate in poll choose your answer</ion-label>
+                  </ion-item>
+                  <form [formGroup]='pollForm'>
+                    <div formArrayName="checks_array" *ngIf="controls.length>=1">
+                      <ion-item class="ion-padding-bottom" lines="none" *ngFor="let control of controls; index as i" [formGroupName]="i">
+                        <ion-img style="min-width: 180px; max-width: 195px;" *ngIf="!question.add_answers[i]['answer']" [src]="question.add_answers[i]"></ion-img>
+                        <ion-text *ngIf="question.add_answers[i]['answer']">{{ question.add_answers[i]['answer'] }}</ion-text>
+                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event.detail.checked, i)" formControlName="check"></ion-checkbox>
+                      </ion-item>
+                    </div>
+                    <ion-button class="ion-margin-start" color="primary" type="button" (click)="postResult()">Submit</ion-button>
+                    <ion-button class="ion-margin-start" color="medium" type="button">Results</ion-button>
+                  </form>
+                </ion-card>
+              </ion-col>
+              <ion-col size="2" *ngIf="question?.add_answers"></ion-col>
               <ion-col size="10" class="ion-no-padding">
                 <ion-card-content>
                   <ion-img *ngIf="question?.imageData" style="width: 20vw; height: 20vh; min-width: 180px; max-width: 195px;" [src]="question?.imageData"></ion-img>
@@ -54,7 +79,8 @@
                       <ion-label *ngIf="comments.length<1"><a>{{ comments?.length }} answers</a></ion-label>
                     </ion-chip>
                     <ion-chip>
-                      <ion-label>Default2</ion-label>
+                      <ion-icon name="eye-outline"></ion-icon>
+                      <ion-label>Views</ion-label>
                     </ion-chip>
                     <div style="flex: 1 1 auto;"></div>
                     <ion-button>Answer</ion-button>
@@ -78,16 +104,21 @@
             </ion-avatar>
 
             <ion-text class="ion-text-center">
-              <ion-icon name="caret-up-outline" style="cursor: pointer;" (click)="increaseCount(question.id, i)"></ion-icon>
+              <ion-icon name="caret-up-outline" style="cursor: pointer;" (click)="increaseCount(question.id)"></ion-icon>
               <p>
-                <b *ngIf="!isLoading || (currentIndex!==i)">{{ question?.upCount + question?.downCount }}</b>
-                <ion-spinner color="primary" *ngIf="isLoading && (currentIndex===i)"></ion-spinner>
+                <b *ngIf="!isVoteLoading">{{ question?.upCount + question?.downCount }}</b>
+                <ion-spinner color="primary" *ngIf="isVoteLoading"></ion-spinner>
               </p>
-              <ion-icon name="caret-down-outline" style="cursor: pointer;" (click)="decreaseCount(question.id, i)"></ion-icon>
+              <ion-icon name="caret-down-outline" style="cursor: pointer;" (click)="decreaseCount(question.id)"></ion-icon>
             </ion-text>
             <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
               <span><b>{{ question?.createdBy }}</b></span>
-              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question?.createdUserBadge }}</span>
+              <span class="ion-margin-start beginner" *ngIf="question?.createdUserRepPoints>=10 && question?.createdUserRepPoints<50">Beginner</span>
+              <span class="ion-margin-start teacher" *ngIf="question?.createdUserRepPoints>=50 && question?.createdUserRepPoints<100">Teacher</span>
+              <span class="ion-margin-start senpai" *ngIf="question?.createdUserRepPoints>=100 && question?.createdUserRepPoints<150">Senpai</span>
+              <span class="ion-margin-start explainer" *ngIf="question?.createdUserRepPoints>=150 && question?.createdUserRepPoints<200">Explainer</span>
+              <span class="ion-margin-start professional" *ngIf="question?.createdUserRepPoints>=200 && question?.createdUserRepPoints<250">Professional</span>
+              <span class="ion-margin-start enlightened" *ngIf="question?.createdUserRepPoints>=250">Enlightened</span>
               <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question?.postDate | date: 'longDate' }}</span></p>
             </ion-text>
           </ion-item>
@@ -100,9 +131,29 @@
 
           <ion-grid>
             <ion-row>
+              <ion-col size="12" class="ion-no-padding" *ngIf="question?.add_answers">
+                <ion-card class="poll-card ion-padding-bottom">
+                  <ion-item lines="none">
+                    <ion-icon name="help-circle"></ion-icon>
+                    <ion-label class="ion-padding-start">Participate in poll choose your answer</ion-label>
+                  </ion-item>
+                  <form [formGroup]='pollForm'>
+                    <div formArrayName="checks_array" *ngIf="controls.length>=1">
+                      <ion-item class="ion-padding-bottom" lines="none" *ngFor="let control of controls; index as i" [formGroupName]="i">
+                        <ion-img style="min-width: 180px; max-width: 195px;" *ngIf="!question.add_answers[i]['answer']" [src]="question.add_answers[i]"></ion-img>
+                        <ion-text *ngIf="question.add_answers[i]['answer']">{{ question.add_answers[i]['answer'] }}</ion-text>
+                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event.detail.checked, i)" formControlName="check"></ion-checkbox>
+                      </ion-item>
+                    </div>
+                    <ion-button class="ion-margin-start" color="primary" type="button" (click)="postResult()">Submit</ion-button>
+                    <ion-button class="ion-margin-start" color="medium" type="button">Results</ion-button>
+                  </form>
+                </ion-card>
+              </ion-col>
               <ion-col size="12" class="ion-no-padding">
-                <ion-card-content>
-                  {{ question?.details }}
+                <ion-card-content class="ion-no-padding ion-padding-start ion-padding-bottom">
+                  <ion-img *ngIf="question?.imageData" style="width: 20vw; height: 20vh; min-width: 180px; max-width: 195px;" [src]="question?.imageData"></ion-img>
+                  <ion-text>{{ question?.details }}</ion-text>
                 </ion-card-content>
                 <ion-chip *ngFor="let tag of question?.tags">
                   <ion-label>{{ tag }}</ion-label>
@@ -116,15 +167,16 @@
             <ion-row>
               <ion-col size="12">
                 <ion-card>
-                  <ion-card-content class="ion-no-padding">
+                  <ion-card-content style="display: flex;" class="ion-no-padding">
                     <ion-chip>
                       <ion-icon name="chatbox-ellipses-outline"></ion-icon>
                       <ion-label><a>{{ comments?.length }} answers</a></ion-label>
                     </ion-chip>
                     <ion-chip>
                       <ion-icon name="eye-outline"></ion-icon>
-                      <ion-label>Default2</ion-label>
+                      <ion-label>Views</ion-label>
                     </ion-chip>
+                    <div style="flex: 1 1 auto;"></div>
                     <ion-button style="--border-radius: 0px;">Answer</ion-button>
                   </ion-card-content>
                 </ion-card>
@@ -133,7 +185,7 @@
           </ion-grid>
         </ion-card>
 
-        <div style="display: flex;">
+        <div id="from_answer" style="display: flex;" class="hidden-xs-down">
           <p style="flex: 1 1 auto;"><b>{{ comments?.length }} answers</b></p>
           <ion-segment style="width: min-content;">
             <ion-segment-button value="voted">
@@ -151,6 +203,24 @@
           </ion-segment>
         </div>
 
+        <div id="from_answer" style="display: flex;" class="hidden-sm-up">
+          <p style="flex: 1 1 auto;"><b>{{ comments?.length }} answers</b></p>
+          <ion-select [ngModel]="'voted'" mode="ios">
+            <ion-select-option value="voted">
+              Voted
+            </ion-select-option>
+            <ion-select-option value="old">
+              Oldest
+            </ion-select-option>
+            <ion-select-option value="recent">
+              Recent
+            </ion-select-option>
+            <ion-select-option value="random">
+              Random
+            </ion-select-option>
+          </ion-select>
+        </div>
+
         <ion-card class="ion-no-margin" [id]="comment.id" *ngFor="let comment of comments; index as i">
           <ion-item lines="none" class="ion-margin-top">
             <ion-avatar slot="start">
@@ -159,7 +229,12 @@
 
             <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
               <span><b>{{ comment?.userName }}</b></span>
-              <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ comment?.userBadge }}</span>
+              <span class="ion-margin-start beginner" *ngIf="comment?.userRepPoints>=10 && comment?.userRepPoints<50">Beginner</span>
+              <span class="ion-margin-start teacher" *ngIf="comment?.userRepPoints>=50 && comment?.userRepPoints<100">Teacher</span>
+              <span class="ion-margin-start senpai" *ngIf="comment?.userRepPoints>=100 && comment?.userRepPoints<150">Senpai</span>
+              <span class="ion-margin-start explainer" *ngIf="comment?.userRepPoints>=150 && comment?.userRepPoints<200">Explainer</span>
+              <span class="ion-margin-start professional" *ngIf="comment?.userRepPoints>=200 && comment?.userRepPoints<250">Professional</span>
+              <span class="ion-margin-start enlightened" *ngIf="comment?.userRepPoints>=250">Enlightened</span>
               <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Added an answer on {{ comment?.postDate | date: 'longDate' }}</p>
             </ion-text>
           </ion-item>
@@ -174,11 +249,12 @@
                 <p style="display: flex;">
                   <span style="flex: 1 1 auto;">
                     <span class="spans">
-                      <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteComment()"></ion-icon>
+                      <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteComment(comment.id, i)"></ion-icon>
                       <span style="padding: 0px 5px;">
-                        <b>{{ comment?.upvoteComment + comment?.downvoteComment }}</b>
+                        <b *ngIf="!isVoteLoadingC || (currentIndex!==i)">{{ comment?.upvoteComment + comment?.downvoteComment }}</b>
+                        <ion-spinner color="primary" *ngIf="isVoteLoadingC && (currentIndex===i)"></ion-spinner>
                       </span>
-                      <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteComment()"></ion-icon>
+                      <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteComment(comment.id, i)"></ion-icon>
                     </span>
                     <span class="spans" (click)="setReplyStatus(i)">
                       <ion-icon name="arrow-undo-outline"></ion-icon>
@@ -199,7 +275,7 @@
             <p><b>Reply to {{ comment?.userName }}</b></p>
             <a style="cursor: pointer;" (click)="setReplyStatus(i)"><b>Cancel reply</b></a>
             <ion-card-content class="ion-no-padding">
-  
+
               <ion-item lines="none" style="--padding-start: 0;">
                 <ion-text class="ion-padding-end">Logged in as</ion-text>
                 <ion-icon name="person"></ion-icon>
@@ -235,14 +311,19 @@
                     <ion-avatar slot="start">
                       <img [src]="reply?.userImage">
                     </ion-avatar>
-        
+
                     <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
                       <span><b>{{ reply?.userName }}</b></span>
-                      <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ reply?.userBadge }}</span>
+                      <span class="ion-margin-start beginner" *ngIf="reply?.userRepPoints>=10 && reply?.userRepPoints<50">Beginner</span>
+                      <span class="ion-margin-start teacher" *ngIf="reply?.userRepPoints>=50 && reply?.userRepPoints<100">Teacher</span>
+                      <span class="ion-margin-start senpai" *ngIf="reply?.userRepPoints>=100 && reply?.userRepPoints<150">Senpai</span>
+                      <span class="ion-margin-start explainer" *ngIf="reply?.userRepPoints>=150 && reply?.userRepPoints<200">Explainer</span>
+                      <span class="ion-margin-start professional" *ngIf="reply?.userRepPoints>=200 && reply?.userRepPoints<250">Professional</span>
+                      <span class="ion-margin-start enlightened" *ngIf="reply?.userRepPoints>=250">Enlightened</span>
                       <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Replied to answer on {{ reply?.replyDate | date: 'longDate' }}</p>
                     </ion-text>
                   </ion-item>
-        
+
                   <ion-grid class="ion-padding-start">
                     <ion-row class="ion-padding-start">
                       <ion-col size="1" class="ion-padding-end"></ion-col>
@@ -253,11 +334,12 @@
                         <p style="display: flex;">
                           <span style="flex: 1 1 auto;">
                             <span class="spans">
-                              <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteReply()"></ion-icon>
+                              <ion-icon class="i-icon" name="caret-up-outline" style="cursor: pointer;" (click)="upvoteReply(comments[i].id, reply.id, i, r)"></ion-icon>
                               <span style="padding: 0px 5px;">
-                                <b>{{ reply?.upvoteReply + reply?.downvoteReply }}</b>
+                                <b *ngIf="!isVoteLoadingR || (currentReplyIndex!==r) || (currentIndex!==i)">{{ reply?.upvoteReply + reply?.downvoteReply }}</b>
+                                <ion-spinner color="primary" *ngIf="isVoteLoadingR && (currentReplyIndex===r) && (currentIndex===i)"></ion-spinner>
                               </span>
-                              <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteReply()"></ion-icon>
+                              <ion-icon class="i-icon" name="caret-down-outline" style="cursor: pointer;" (click)="downvoteReply(comments[i].id, reply.id, i, r)"></ion-icon>
                             </span>
                             <span class="spans" (click)="setReplyToReplyStatus(i, r)">
                               <ion-icon name="arrow-undo-outline"></ion-icon>
@@ -273,12 +355,12 @@
                       </ion-col>
                     </ion-row>
                   </ion-grid>
-        
+
                   <ion-card *ngIf="reply.replyToReply" class="ion-padding ion-no-margin">
                     <p><b>Reply to {{ reply?.userName }}</b></p>
                     <a (click)="setReplyToReplyStatus(i, r)"><b>Cancel reply</b></a>
                     <ion-card-content class="ion-no-padding">
-          
+
                       <ion-item lines="none" style="--padding-start: 0;">
                         <ion-text class="ion-padding-end">Logged in as</ion-text>
                         <ion-icon name="person"></ion-icon>
@@ -311,12 +393,45 @@
 
         </ion-card>
 
-        <ion-card class="ion-padding ion-no-margin">
+        <ion-card id="post_answer" class="hidden-md-down ion-padding ion-no-margin">
           <p><b>Leave an answer</b></p>
           <ion-card-content class="ion-no-padding">
             <ion-item lines="none" style="--padding-start: 0;">
               <ion-text class="ion-padding-end">Logged in as</ion-text>
               <ion-icon name="person"></ion-icon>
+              <ion-text class="ion-padding-start">{{ username ? username : 'anonymously' }}</ion-text>
+              <ion-item lines="none">
+                <ion-icon name="log-out"></ion-icon>
+                <ion-text class="ion-padding-start">Log out</ion-text>
+              </ion-item>
+            </ion-item>
+            <form [formGroup]="form">
+              <div>
+                <ion-text style="font-size: smaller;" class="ion-margin-start">Featured image</ion-text>
+                <app-image-picker [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
+              </div>
+              <ion-item>
+                <ion-label position="stacked">Details</ion-label>
+                <ion-textarea type="text" formControlName="details" rows="6"></ion-textarea>
+              </ion-item>
+              <ion-grid *ngIf="isCommenting">
+                <ion-row>
+                  <ion-col size="12" class="ion-text-center">
+                    <ion-spinner color="primary"></ion-spinner>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <ion-button *ngIf="!isCommenting" color="primary" class="ion-margin-top" expand="full" [disabled]="!form.valid" type="button" (click)="onComment()">Submit</ion-button>
+            </form>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card id="post_answer" class="hidden-lg-up ion-no-padding ion-no-margin">
+          <p class="ion-padding-start"><b>Leave an answer</b></p>
+          <ion-card-content class="ion-no-padding">
+            <ion-item lines="none" style="--padding-start: 0;">
+              <ion-text class="ion-padding-start">Logged in as</ion-text>
+              <ion-icon name="person" class="ion-padding-start"></ion-icon>
               <ion-text class="ion-padding-start">{{ username ? username : 'anonymously' }}</ion-text>
               <ion-item lines="none">
                 <ion-icon name="log-out"></ion-icon>

@@ -32,6 +32,8 @@ export class QuestionComponent implements OnInit {
   form: FormGroup;
   tags: string[] = [];
   image: string;
+  add_answers_img: string[] = [];
+  formImageValue: string;
 
   constructor(private modalCtrl: ModalController, private loadingCtrl: LoadingController) {}
 
@@ -49,7 +51,7 @@ export class QuestionComponent implements OnInit {
       checkbox: new FormControl(undefined),
       checkbox_img: new FormControl(undefined),
       add_answers: new FormArray([new FormGroup({
-        answer: new FormControl(null)
+        answer: new FormControl(undefined)
       })]),
       image: new FormControl(null),
       details: new FormControl(null, {
@@ -125,7 +127,7 @@ export class QuestionComponent implements OnInit {
     (<FormArray>this.form.get('add_answers')).removeAt(i);
   }
 
-  onImagePicked(imageData: string | File) {
+  onImagePicked(imageData: string | File, isFeatured?: string) {
     let imageFile;
     
     if (typeof imageData === 'string') {
@@ -151,7 +153,29 @@ export class QuestionComponent implements OnInit {
 
       imageFile = imageData;
     }
-    this.form.patchValue({ image: imageFile });
+    if(this.form.get('checkbox_img').value){
+      (<FormArray>this.form.get('add_answers')).controls[this.controls.length-1].patchValue({ answer: imageFile });
+      if(isFeatured==='featured'){
+        console.log('featured picked');
+        this.form.patchValue({ image: imageFile });
+        this.formImageValue = this.image;
+      }else{
+        this.add_answers_img.push(this.image);
+      }
+    }else{
+      this.form.patchValue({ image: imageFile });
+      if(isFeatured==='featured'){
+        console.log('featured picked');
+        this.formImageValue = this.image;
+      }
+    }
+    
+  }
+
+  check(event){
+    if(!event){
+      this.form.get('add_answers').reset();
+    }
   }
 
   onCancel(){
@@ -163,19 +187,39 @@ export class QuestionComponent implements OnInit {
       return;
     }
     console.log(this.form);
-    this.modalCtrl.dismiss({postingData: {
-      question: this.form.value.question,
-      catagory: this.form.value.catagory,
-      tags: this.tags,
-      add_answers: this.form.value.add_answers,
-      image: this.image,
-      details: this.form.value.details,
-      current_date: new Date().toISOString(),
-      anonymous: this.form.value.anonymous,
-      private_question: this.form.value.private,
-      notif: this.form.value.notif,
-      policy: this.form.value.policy
-    }}, 'confirm');
+    if((<FormArray>this.form.get('add_answers')).length<=1){
+      this.form.value.add_answers = null;
+    }
+    if(this.form.get('checkbox_img').value){
+      this.modalCtrl.dismiss({postingData: {
+        question: this.form.value.question,
+        catagory: this.form.value.catagory,
+        tags: this.tags,
+        add_answers: this.add_answers_img,
+        image: this.formImageValue,
+        details: this.form.value.details,
+        current_date: new Date().toISOString(),
+        anonymous: this.form.value.anonymous,
+        private_question: this.form.value.private,
+        notif: this.form.value.notif,
+        policy: this.form.value.policy
+      }}, 'confirm');
+    }else{
+      this.modalCtrl.dismiss({postingData: {
+        question: this.form.value.question,
+        catagory: this.form.value.catagory,
+        tags: this.tags,
+        add_answers: this.form.value.add_answers,
+        image: this.formImageValue,
+        details: this.form.value.details,
+        current_date: new Date().toISOString(),
+        anonymous: this.form.value.anonymous,
+        private_question: this.form.value.private,
+        notif: this.form.value.notif,
+        policy: this.form.value.policy
+      }}, 'confirm');
+    }
+    
   }
 
 }

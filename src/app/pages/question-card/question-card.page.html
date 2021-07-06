@@ -5,14 +5,19 @@
     </ion-avatar>
     <ion-text style="color: var(--ion-color-primary);">
       <b>{{ question.createdBy }}</b>
-      <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question.createdUserBadge }}</span>
+      <span class="ion-margin-start beginner" *ngIf="question.createdUserRepPoints>=10 && question.createdUserRepPoints<50">Beginner</span>
+      <span class="ion-margin-start teacher" *ngIf="question.createdUserRepPoints>=50 && question.createdUserRepPoints<100">Teacher</span>
+      <span class="ion-margin-start senpai" *ngIf="question.createdUserRepPoints>=100 && question.createdUserRepPoints<150">Senpai</span>
+      <span class="ion-margin-start explainer" *ngIf="question.createdUserRepPoints>=150 && question.createdUserRepPoints<200">Explainer</span>
+      <span class="ion-margin-start professional" *ngIf="question.createdUserRepPoints>=200 && question.createdUserRepPoints<250">Professional</span>
+      <span class="ion-margin-start enlightened" *ngIf="question.createdUserRepPoints>=250">Enlightened</span>
       <span class="ion-margin-start" style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question.postDate | date: 'longDate' }}</span></span>
     </ion-text>
   </ion-item>
 
   <ion-card-header class="ion-margin-start">
     <ion-card-title class="ion-margin-start">
-      {{ question.question }}
+      <a style="cursor: pointer;" (click)="qaPage(question.id)">{{ question.question }}</a>
     </ion-card-title>
   </ion-card-header>
 
@@ -43,13 +48,14 @@
         <ion-card>
           <ion-card-content style="display: flex;">
             <ion-chip (click)="qaPage(question.id)">
-              <ion-label>Default1</ion-label>
+              <ion-label>{{ question.totalComments || 0 }} Answers</ion-label>
             </ion-chip>
             <ion-chip>
-              <ion-label>Default2</ion-label>
+              <ion-icon name="eye-outline"></ion-icon>
+              <ion-label>Views</ion-label>
             </ion-chip>
             <div style="flex: 1 1 auto;"></div>
-            <ion-button>Answer</ion-button>
+            <ion-button (click)="qaPageAnswer(question.id)">Answer</ion-button>
           </ion-card-content>
         </ion-card>
       </ion-col>
@@ -74,14 +80,19 @@
     </ion-text>
     <ion-text style="color: var(--ion-color-primary);" class="ion-padding-start">
       <span><b>{{ question.createdBy }}</b></span>
-      <span class="ion-margin-start" style="width: fit-content; padding: 3px; background-color: var(--ion-color-warning-contrast); color: var(--ion-color-primary-contrast);">{{ question.createdUserBadge }}</span>
+      <span class="ion-margin-start beginner" *ngIf="question.createdUserRepPoints>=10 && question.createdUserRepPoints<50">Beginner</span>
+      <span class="ion-margin-start teacher" *ngIf="question.createdUserRepPoints>=50 && question.createdUserRepPoints<100">Teacher</span>
+      <span class="ion-margin-start senpai" *ngIf="question.createdUserRepPoints>=100 && question.createdUserRepPoints<150">Senpai</span>
+      <span class="ion-margin-start explainer" *ngIf="question.createdUserRepPoints>=150 && question.createdUserRepPoints<200">Explainer</span>
+      <span class="ion-margin-start professional" *ngIf="question.createdUserRepPoints>=200 && question.createdUserRepPoints<250">Professional</span>
+      <span class="ion-margin-start enlightened" *ngIf="question.createdUserRepPoints>=250">Enlightened</span>
       <p style="font-size: 10px; color: var(--ion-card-color, var(--ion-item-color, var(--ion-color-step-550, #737373)));">Asked: <span style="color: var(--ion-color-primary);">{{ question.postDate | date: 'longDate' }}</span></p>
     </ion-text>
   </ion-item>
 
-  <ion-card-header>
-    <ion-card-title>
-      {{ question.question }}
+  <ion-card-header class="ion-no-padding">
+    <ion-card-title class="ion-padding-start ion-padding-top">
+      <a style="cursor: pointer;" (click)="qaPage(question.id)">{{ question.question }}</a>
     </ion-card-title>
   </ion-card-header>
 
@@ -89,7 +100,8 @@
     <ion-row>
       <ion-col size="12" class="ion-no-padding">
         <ion-card-content>
-          {{ question.details }}
+          <ion-img *ngIf="question.imageData" style="width: 20vw; height: 20vh; min-width: 180px; max-width: 195px;" [src]="question.imageData"></ion-img>
+          <ion-text>{{ question.details }}</ion-text>
         </ion-card-content>
         <ion-chip *ngFor="let tag of question.tags">
           <ion-label>{{ tag }}</ion-label>
@@ -100,16 +112,17 @@
     <ion-row>
       <ion-col size="12">
         <ion-card>
-          <ion-card-content class="ion-no-padding">
-            <ion-chip>
+          <ion-card-content class="ion-no-padding" style="display: flex;">
+            <ion-chip (click)="qaPage(question.id)">
               <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-              <ion-label><a (click)="qaPage(question.id)">4 answers</a></ion-label>
+              <ion-label>{{ question.totalComments || 0 }} Answers</ion-label>
             </ion-chip>
             <ion-chip>
               <ion-icon name="eye-outline"></ion-icon>
-              <ion-label>Default2</ion-label>
+              <ion-label>Views</ion-label>
             </ion-chip>
-            <ion-button style="--border-radius: 0px;">Answer</ion-button>
+            <div style="flex: 1 1 auto;"></div>
+            <ion-button (click)="qaPageAnswer(question.id)" style="--border-radius: 0px;">Answer</ion-button>
           </ion-card-content>
         </ion-card>
       </ion-col>

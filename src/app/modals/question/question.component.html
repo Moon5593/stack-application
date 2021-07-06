@@ -107,27 +107,35 @@
         <ion-col size="12">
           <ion-item lines="none" class="ion-margin-top">
             <ion-text>Image poll?</ion-text>
-            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox_img"></ion-checkbox>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox_img" (ionChange)="check($event.detail.checked)"></ion-checkbox>
           </ion-item>
         </ion-col>
       </ion-row>
 
       <ion-row *ngIf="form.get('checkbox').value">
         <ion-col size="12">
-          <ion-item formArrayName="add_answers" *ngIf="controls.length>=1">
+          <ion-item formArrayName="add_answers" *ngIf="controls.length>=1 && !form.get('checkbox_img').value">
             <ion-grid>
               <ion-row *ngFor = "let control of controls; let i = index" [formGroupName] = "i">
                 <ion-col size="10">
-                  <ion-input *ngIf="!form.get('checkbox_img').value" style="border:1px solid var(--ion-item-border-color, var(--ion-border-color, var(--ion-color-step-150, rgba(0, 0, 0, 0.13))));" type="text" formControlName="answer">
+                  <ion-input style="border:1px solid var(--ion-item-border-color, var(--ion-border-color, var(--ion-color-step-150, rgba(0, 0, 0, 0.13))));" type="text" formControlName="answer">
                     <ion-icon class="ion-padding-start" name="chatbox"></ion-icon>
                   </ion-input>
-
-                  <app-image-picker *ngIf="form.get('checkbox_img').value" [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
                 </ion-col>
-                <ion-col size="2" *ngIf="!form.get('checkbox_img').value">
+                <ion-col size="2">
                   <ion-button color="danger" (click)="onDeleteAnswer(i)">X</ion-button>
                 </ion-col>
-                <ion-col size="2" *ngIf="form.get('checkbox_img').value" class="ion-padding-top">
+              </ion-row>
+            </ion-grid>
+          </ion-item>
+
+          <ion-item formArrayName="add_answers" *ngIf="controls.length>=1 && form.get('checkbox_img').value">
+            <ion-grid>
+              <ion-row *ngFor = "let control of controls; let i = index" [formGroupName] = "i">
+                <ion-col size="10">
+                  <app-image-picker [showPreview]="control.value" (imagePick)="onImagePicked($event)" formControlName="answer"></app-image-picker>
+                </ion-col>
+                <ion-col size="2" class="ion-padding-top">
                   <ion-button color="danger" class="ion-no-margin" (click)="onDeleteAnswer(i)">X</ion-button>
                 </ion-col>
               </ion-row>
@@ -141,7 +149,7 @@
       <ion-row>
         <ion-col size="12">
           <ion-text style="font-size: smaller;" class="ion-margin-start">Featured image</ion-text>
-          <app-image-picker [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event)"></app-image-picker>
+          <app-image-picker [showPreview]="form.get('image').value" (imagePick)="onImagePicked($event, 'featured')" formControlName="image"></app-image-picker>
         </ion-col>
       </ion-row>
 

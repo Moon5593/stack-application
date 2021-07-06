@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { from, of, Subscription, EMPTY } from 'rxjs';
+import { from, of, Subscription, EMPTY, Subject } from 'rxjs';
 import { AuthService } from './services & shared/auth.service';
 import { AppDataService } from './services & shared/app-data.service';
-import { AppState, Plugins } from '@capacitor/core';
+import { AppState, Plugins, NetworkStatus, PluginListenerHandle } from '@capacitor/core';
 import { filter, switchMap, take, tap } from 'rxjs/operators';
+import { AlertController } from '@ionic/angular';
+const { Network } = Plugins;
 
 @Component({
   selector: 'app-root',
@@ -18,6 +20,9 @@ export class AppComponent implements OnInit, OnDestroy {
   userImage: string;
   urlImage: string;
   anonymous_sub: Subscription;
+  innerSub: Subscription;
+  networkStatus: NetworkStatus;
+  networkListener: PluginListenerHandle;
 
   sidelist_items = [
     {
@@ -47,9 +52,20 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   ];
 
-  constructor(private appData: AppDataService, private authService: AuthService, private router: Router) {}
+  constructor(
+      private appData: AppDataService,
+      private authService: AuthService
+    ) {}
 
-  ngOnInit(){
+  async ngOnInit(){
+    this.networkListener = Network.addListener('networkStatusChange', (status) => {
+      console.log("Network status changed", status);
+      this.networkStatus = status;
+      this.appData.networkStatusRunTime.next(this.networkStatus.connected);
+    });
+
+    this.networkStatus = await Network.getStatus();
+
     this.authSub = this.authService.userIsAuthenticated.subscribe(isAuth => {
       if (!isAuth && this.previousAuthState !== isAuth) {}
       this.previousAuthState = isAuth;
@@ -83,6 +99,18 @@ export class AppComponent implements OnInit, OnDestroy {
                 return from(Plugins.Storage.get({ key: 'anonymousToken' }));
               }
             }
+            this.innerSub = this.authService.userIsAuthenticated
+            .subscribe(auth=>{
+              if(auth){
+                this.fetchUsers();
+                this.fetchAnswers();
+                this.fetchTopUsers();
+                this.fetchTopQuestions();
+              }
+              if(this.innerSub){
+                this.innerSub.unsubscribe();
+              }
+            });
             return EMPTY;
           }
         }),
@@ -113,7 +141,12 @@ export class AppComponent implements OnInit, OnDestroy {
               this.authService._atoken.next(tokenData.idToken);
               })
             )
-            .subscribe(()=>{});
+            .subscribe(()=>{
+              this.fetchUsers();
+              this.fetchAnswers();
+              this.fetchTopUsers();
+              this.fetchTopQuestions();
+            });
             return EMPTY;
           }else{
             return of(data.token);
@@ -124,13 +157,42 @@ export class AppComponent implements OnInit, OnDestroy {
         tap(tokenValue=>{
           this.authService._atoken.next(tokenValue);
         })
-      ).subscribe(()=>{});
+      ).subscribe(()=>{
+        this.fetchUsers();
+        this.fetchAnswers();
+        this.fetchTopUsers();
+        this.fetchTopQuestions();
+      });
     }
 
     Plugins.App.addListener(
       'appStateChange',
       this.checkAuthOnResume.bind(this)
     );
+  }
+
+  fetchUsers(){
+    this.authService.fetchTotalUsers().pipe(take(1)).subscribe(()=>{
+      //console.log(this.authService.listU);
+    });
+  }
+
+  fetchTopUsers(){
+    this.authService.fetchTopUsers().pipe(take(1)).subscribe((users)=>{
+      console.log(users);
+    });
+  }
+
+  fetchTopQuestions(){
+    this.appData.fetchTTQuestions().pipe(take(1)).subscribe((ques)=>{
+      console.log(ques);
+    });
+  }
+
+  fetchAnswers(){
+    this.appData.fetchTotalAnswers().pipe(take(1)).subscribe(()=>{
+      //console.log(this.appData.listA);
+    });
   }
 
   toggleChange(){
@@ -149,6 +211,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.anonymous_sub.unsubscribe();
     }
     Plugins.App.removeAllListeners();
+    this.networkListener.remove();
   }
 
   private checkAuthOnResume(state: AppState) {

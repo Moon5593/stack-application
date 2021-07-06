@@ -7,12 +7,13 @@ export class Comment{
         public comment: string,
         public postId: string,
         public postDate: Date,
-        public userBadge: string,
+        public userRepPoints: number,
         public userName: string,
         public userImage: string,
         public upvoteComment: number,
         public downvoteComment: number,
         public replies?: Replies[],
-        public reply?: boolean
+        public reply?: boolean,
+        public atLeastOneUpvote?: boolean
     ){}
 }

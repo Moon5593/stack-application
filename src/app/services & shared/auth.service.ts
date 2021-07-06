@@ -1,12 +1,13 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, from, of } from 'rxjs';
+import { BehaviorSubject, from, of, Subject } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs/operators';
 import { Plugins } from '@capacitor/core';
 
 import { environment } from '../../environments/environment';
 import { User } from '../models/user.model';
-import { Totals } from '../models/totals.model';
+import { Users } from '../models/users.model';
+import { AlertController } from '@ionic/angular';
 
 export interface AuthResponseData extends UserResponseData {
   kind?: string;
@@ -25,11 +26,13 @@ export interface UserResponseData{
   rep_points?: number;
 }
 
-export interface TotalData{
-  users: number;
-  questions: number;
-  answers: number;
-  best_answers: number;
+export interface UserData{
+  badge: string;
+  email: string;
+  imageUrl: string;
+  name: string;
+  rep_points: number;
+  userId: string;
 }
 
 @Injectable({
@@ -39,6 +42,25 @@ export class AuthService implements OnDestroy {
   private _user = new BehaviorSubject<User>(null);
   private activeLogoutTimer: any;
   public _atoken = new BehaviorSubject<string>(null);
+  public listU = [];
+  private _listU = new BehaviorSubject<any[]>([]);
+  private runtimeULength: number;
+  private latestKey: string;
+  public stopScroll = new Subject<boolean>();
+  private _users = new BehaviorSubject<Users[]>([]);
+  private _tUsers = new BehaviorSubject<Users[]>([]);
+
+  get totalUsers(){
+    return this._listU.asObservable();
+  }
+
+  get allUsers(){
+    return this._users.asObservable();
+  }
+
+  get topThreeUsers(){
+    return this._tUsers.asObservable();
+  }
 
   get userIsAuthenticated() {
     return this._user.asObservable().pipe(
@@ -136,7 +158,7 @@ export class AuthService implements OnDestroy {
     );
   }
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private alertCtrl: AlertController) {}
 
   autoLogin() {
     return from(Plugins.Storage.get({ key: 'authData' })).pipe(
@@ -221,39 +243,130 @@ export class AuthService implements OnDestroy {
     );
   }
 
-  setTotals(){
-    let fetchedToken;
-    let total;
-    return this.token
-    .pipe(
+  fetchTopUsers(){
+    return this.token.pipe(
       take(1),
       switchMap(token=>{
-        fetchedToken = token;
-        return this.http.get<{[key: string]: TotalData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`);
-      }),
-      switchMap(totalData=>{
-        if(!totalData){
-          total = new Totals(
-            1,
-            0,
-            0,
-            0
-          );
-          return this.http.post(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`,
-          {...total});
+        if(!token){
+          return this.aToken;
+        }else{
+          return of(token);
         }
-        for(let key in totalData){
-          if(totalData.hasOwnProperty(key)){
-            total = new Totals(
-              totalData[key].users+1,
-              totalData[key].questions,
-              totalData[key].answers,
-              totalData[key].best_answers
+      }),
+      switchMap(token=>{
+        return this.http.get<{[key: string]: UserData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/users.json?orderBy="rep_points"&limitToLast=3&auth=${token}`);
+      }),
+      map(userData=>{
+        const users = [];
+        for(const key in userData){
+          if(userData.hasOwnProperty(key)){
+            users.push(
+              new Users(
+                key,
+                userData[key].badge,
+                userData[key].email,
+                userData[key].imageUrl,
+                userData[key].name,
+                userData[key].rep_points,
+                userData[key].userId
+              )
             );
           }
         }
-        return this.http.put(`https://stack-app-8a187-default-rtdb.firebaseio.com/totals.json?auth=${fetchedToken}`,
-        {...total});
+        return users;
+      }),
+      tap(users=>{
+        this._tUsers.next(users);
+      })
+    );
+  }
+
+  fetchUsers(userLength?: number){
+    this.runtimeULength = userLength;
+    return this.token.pipe(
+      take(1),
+      switchMap(token=>{
+        if(!token){
+          return this.aToken;
+        }else{
+          return of(token);
+        }
+      }),
+      switchMap(token=>{
+        if(!this.latestKey){
+          return this.http.get<{[key: string]: UserData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/users.json?orderBy="$key"&limitToFirst=12&auth=${token}`);
+        }
+        if((this.listU.length - this.runtimeULength)<12){
+          let limitToL = this.listU.length - this.runtimeULength;
+          if(limitToL>0){
+            return this.http.get<{[key: string]: UserData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/users.json?orderBy="$key"&startAt="${this.latestKey+1}"&limitToLast=${limitToL}&auth=${token}`);
+          }
+        }
+        return this.http.get<{[key: string]: UserData}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/users.json?orderBy="$key"&startAt="${this.latestKey+1}"&limitToFirst=12&auth=${token}`);
+      }),
+      map(userData=>{
+        if(!userData){
+          this.stopScroll.next(true);
+          return;
+        }
+        const users = [];
+        for(const key in userData){
+          if(userData.hasOwnProperty(key)){
+            users.push(
+              new Users(
+                key,
+                userData[key].badge,
+                userData[key].email,
+                userData[key].imageUrl,
+                userData[key].name,
+                userData[key].rep_points,
+                userData[key].userId
+              )
+            );
+            this.latestKey = key;
+          }
+        }
+        return users;
+      }),
+      tap(users=>{
+        if(!this.latestKey){
+          this._users.next(users);
+        }else{
+          if(users){
+            this.allUsers.pipe(take(1)).subscribe(u=>{
+              this._users.next(u.concat(users));
+            });
+          }
+        }
+      })
+    );
+  }
+
+  fetchTotalUsers(){
+    return this.token.pipe(
+      take(1),
+      switchMap(token=>{
+        if(!token){
+          return this.aToken;
+        }else{
+          return of(token);
+        }
+      }),
+      switchMap(token=>{
+        if(this.listU.length<1){
+          return this.http.get<{[key: string]: boolean;}>(`https://stack-app-8a187-default-rtdb.firebaseio.com/users.json?shallow=true&auth=${token}`);
+        }
+        return of(null);
+      }),
+      tap(dataReturned=>{
+        if(dataReturned){
+          for(const key in dataReturned){
+            if(dataReturned.hasOwnProperty(key)){
+              this.listU.push(key);
+            }
+          }
+          this._listU.next(this.listU);
+        }
       })
     );
   }

@@ -1,12 +1,15 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit} from '@angular/core';
 import { Router,NavigationStart, Event as NavigationEvent } from '@angular/router';
 //import {Plugins, Capacitor} from '@capacitor/core';
-import { Config, LoadingController, ModalController, Platform, ToastController } from '@ionic/angular';
+import { Config, createAnimation, LoadingController, ModalController, Platform, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AppDataService } from '../../services & shared/app-data.service';
 import { AuthService } from '../../services & shared/auth.service';
 import { QuestionComponent } from '../../modals/question/question.component';
+import { SegmentChangeEventDetail } from '@ionic/core';
+import { Question } from 'src/app/models/question.model';
+import { Users } from 'src/app/models/users.model';
 
 @Component({
   selector: 'app-side-comp',
@@ -18,6 +21,15 @@ export class SideCompPage implements OnInit, OnDestroy {
   ios: boolean;
   url: string = '/app/home';
   urlSubs: Subscription;
+  switch: boolean = false;
+  totalQues: number = 0;
+  totalAns: number = 0;
+  totalBest: number = 0;
+  totalUsers: number = 0;
+  segLoading: boolean;
+  topComments: Subscription;
+  ques: Question[];
+  topThreeUsers: Users[];
 
   constructor(
       private platform: Platform,
@@ -39,6 +51,47 @@ export class SideCompPage implements OnInit, OnDestroy {
         if(event instanceof NavigationStart) {
           this.url = event.url;
         }
+      });
+
+      this.appData.totalListQues.subscribe(ques=>{
+        if(ques){
+          if(ques.length>1){
+            ques = [...new Map(ques.map(item => [item, item])).values()];
+          }
+          this.totalQues = ques.length;
+        }
+      });
+      this.appData.totalListAns.subscribe(ans=>{
+        this.totalAns = ans.length;
+      });
+      this.appData.bestAns.subscribe(best=>{
+        this.totalBest = best;
+      });
+      this.authService.totalUsers.subscribe(users=>{
+        this.totalUsers = users.length;
+      });
+
+      this.appData.loadingEmitter.subscribe(loading=>{
+        if(!loading){
+          this.segLoading = false;
+        }else{
+          this.segLoading = true;
+        }
+      });
+
+      this.appData.questions.subscribe(ques=>{
+        this.ques = ques;
+      });
+
+      this.authService.topThreeUsers.subscribe(users=>{
+        users.map(u=>{
+          if(u.imageUrl){
+            if(!u.imageUrl.startsWith('data:image/jpeg;base64,')){
+              u.imageUrl = 'data:image/jpeg;base64,'+u.imageUrl;
+            }
+          }
+        });
+        this.topThreeUsers = users;
       });
   }
 
@@ -72,13 +125,10 @@ export class SideCompPage implements OnInit, OnDestroy {
                 resultData.data.postingData.policy
               )
               .subscribe(response=>{
-                //console.log(response);
-                this.appData.setQuestionTotal().subscribe(()=>{
-                  loadingEl.dismiss();
-                  this.toastCtrl.create({message: 'Successfully posted your post.', duration: 2000})
-                  .then(toastEl=>{
-                    toastEl.present();
-                  });
+                loadingEl.dismiss();
+                this.toastCtrl.create({message: 'Successfully posted your post.', duration: 2000})
+                .then(toastEl=>{
+                  toastEl.present();
                 });
               },
               errRes=>{
@@ -101,8 +151,39 @@ export class SideCompPage implements OnInit, OnDestroy {
     });
   }
 
+  onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>){
+    if(event.detail.value === 'answers'){
+      this.switch = true;
+      this.topComments = this.appData.fetchTopComments().pipe(take(1)).subscribe(next=>{
+        this.appData.cLoadingEmitter.next(false);
+        setTimeout(async ()=>{
+          await createAnimation()
+          .addElement(document.querySelector('app-answer div.ans'))
+          .delay(250)
+          .keyframes([
+            { offset: 0, opacity: '0', transform: 'translateY(100%)' },
+            { offset: 1, opacity: '0.99', transform: 'translateY(0)' }
+          ])
+          .duration(250)
+          .play();
+        }, 50);
+      },
+      err=>{
+        this.appData.cLoadingEmitter.next(false);
+      });
+    }else{
+      this.switch = false;
+      if(this.topComments){
+        this.topComments.unsubscribe();
+      }
+    }
+  }
+
   ngOnDestroy(){
     this.urlSubs.unsubscribe();
+    if(this.topComments){
+      this.topComments.unsubscribe();
+    }
   }
 
 }

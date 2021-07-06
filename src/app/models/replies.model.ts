@@ -5,7 +5,7 @@ export class Replies{
         public replyTo: string,
         public reply: string,
         public replyDate: Date,
-        public userBadge: string,
+        public userRepPoints: number,
         public userName: string,
         public userImage: string,
         public upvoteReply: number,
