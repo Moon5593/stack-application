@@ -98,7 +98,7 @@
         <ion-col size="12">
           <ion-item lines="none" class="ion-margin-top">
             <ion-text>Is this question is a poll? If you want to be doing a poll click here.</ion-text>
-            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox"></ion-checkbox>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox" (ionChange)="checkPoll($event)"></ion-checkbox>
           </ion-item>
         </ion-col>
       </ion-row>
@@ -107,7 +107,7 @@
         <ion-col size="12">
           <ion-item lines="none" class="ion-margin-top">
             <ion-text>Image poll?</ion-text>
-            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox_img" (ionChange)="check($event.detail.checked)"></ion-checkbox>
+            <ion-checkbox class="ion-no-margin ion-margin-end" slot="start" formControlName="checkbox_img" (ionChange)="check($event)"></ion-checkbox>
           </ion-item>
         </ion-col>
       </ion-row>

@@ -46,7 +46,7 @@
                       <ion-item class="ion-padding-bottom" lines="none" *ngFor="let control of controls; index as i" [formGroupName]="i">
                         <ion-img style="min-width: 180px; max-width: 195px;" *ngIf="!question.add_answers[i]['answer']" [src]="question.add_answers[i]"></ion-img>
                         <ion-text *ngIf="question.add_answers[i]['answer']">{{ question.add_answers[i]['answer'] }}</ion-text>
-                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event.detail.checked, i)" formControlName="check"></ion-checkbox>
+                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event, i)" formControlName="check"></ion-checkbox>
                       </ion-item>
                     </div>
                     <ion-button class="ion-margin-start" color="primary" type="button" (click)="postResult()">Submit</ion-button>
@@ -142,7 +142,7 @@
                       <ion-item class="ion-padding-bottom" lines="none" *ngFor="let control of controls; index as i" [formGroupName]="i">
                         <ion-img style="min-width: 180px; max-width: 195px;" *ngIf="!question.add_answers[i]['answer']" [src]="question.add_answers[i]"></ion-img>
                         <ion-text *ngIf="question.add_answers[i]['answer']">{{ question.add_answers[i]['answer'] }}</ion-text>
-                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event.detail.checked, i)" formControlName="check"></ion-checkbox>
+                        <ion-checkbox [value]="control.value" class="ion-no-margin ion-margin-end" slot="start" (ionChange)="check($event, i)" formControlName="check"></ion-checkbox>
                       </ion-item>
                     </div>
                     <ion-button class="ion-margin-start" color="primary" type="button" (click)="postResult()">Submit</ion-button>

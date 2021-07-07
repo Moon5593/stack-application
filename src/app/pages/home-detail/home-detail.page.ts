@@ -4,7 +4,6 @@ import { Subscription } from 'rxjs';
 import { AppDataService } from 'src/app/services & shared/app-data.service';
 import { AuthService } from 'src/app/services & shared/auth.service';
 import { Question } from 'src/app/models/question.model';
-import { SegmentChangeEventDetail } from '@ionic/core';
 import { take } from 'rxjs/operators';
 
 @Component({
@@ -190,22 +189,22 @@ export class HomeDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>){
+  onFilterUpdate(event: Event){
     if(this.loadedQuestions.length>0){
-      if(event.detail.value==='recent'){
-        this.segmentValue = event.detail.value;
+      if((event as CustomEvent).detail.value==='recent'){
+        this.segmentValue = (event as CustomEvent).detail.value;
         this.relevantQuestions = this.loadedQuestions.sort((a, b)=>Number(new Date(b.postDate)) - Number(new Date(a.postDate)));
-      }else if(event.detail.value==='most'){
-        this.segmentValue = event.detail.value;
+      }else if((event as CustomEvent).detail.value==='most'){
+        this.segmentValue = (event as CustomEvent).detail.value;
         this.relevantQuestions = this.loadedQuestions.sort((a, b)=>b.totalComments - a.totalComments);
-      }else if(event.detail.value==='answers'){
-        this.segmentValue = event.detail.value;
+      }else if((event as CustomEvent).detail.value==='answers'){
+        this.segmentValue = (event as CustomEvent).detail.value;
         this.relevantQuestions = this.loadedQuestions.sort((a, b)=>b.totalComments - a.totalComments);
-      }else if(event.detail.value==='mv'){
-        this.segmentValue = event.detail.value;
+      }else if((event as CustomEvent).detail.value==='mv'){
+        this.segmentValue = (event as CustomEvent).detail.value;
         this.relevantQuestions = this.loadedQuestions.sort((a, b)=>(b.downCount+b.upCount) - (a.downCount+a.upCount));
       }else{
-        this.segmentValue = event.detail.value;
+        this.segmentValue = (event as CustomEvent).detail.value;
         this.relevantQuestions = this.loadedQuestions.filter(q=>q.totalComments===0);
       }
     }

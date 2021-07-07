@@ -7,7 +7,6 @@ import { take } from 'rxjs/operators';
 import { AppDataService } from '../../services & shared/app-data.service';
 import { AuthService } from '../../services & shared/auth.service';
 import { QuestionComponent } from '../../modals/question/question.component';
-import { SegmentChangeEventDetail } from '@ionic/core';
 import { Question } from 'src/app/models/question.model';
 import { Users } from 'src/app/models/users.model';
 
@@ -158,8 +157,8 @@ export class SideCompPage implements OnInit, OnDestroy {
     });
   }
 
-  onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>){
-    if(event.detail.value === 'answers'){
+  onFilterUpdate(event: Event){
+    if((event as CustomEvent).detail.value === 'answers'){
       this.switch = true;
       this.topComments = this.appData.fetchTopComments().pipe(take(1)).subscribe(next=>{
         this.appData.cLoadingEmitter.next(false);

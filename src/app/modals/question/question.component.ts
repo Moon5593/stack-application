@@ -48,7 +48,9 @@ export class QuestionComponent implements OnInit {
       tags: new FormControl(null, {
         validators: [Validators.required, Validators.pattern("[/.*\\S.*/]*")]
       }),
-      checkbox: new FormControl(undefined),
+      checkbox: new FormControl(undefined, {
+        validators: [this.setValidator.bind(this)]
+      }),
       checkbox_img: new FormControl(undefined),
       add_answers: new FormArray([new FormGroup({
         answer: new FormControl(undefined)
@@ -64,6 +66,13 @@ export class QuestionComponent implements OnInit {
         validators: [Validators.required]
       })
     });
+  }
+
+  checkValidLength(fa: FormArray): {[s: string]: boolean} {
+    if(fa.length>=2){
+      return null;
+    }
+    return {'lengthIsMin': true};
   }
 
   comma_pressed(event){
@@ -123,10 +132,15 @@ export class QuestionComponent implements OnInit {
         'answer': new FormControl(null, Validators.required)
       })
     );
+    this.form.controls['add_answers'].updateValueAndValidity();
+    this.form.controls['checkbox'].updateValueAndValidity();
   }
 
   onDeleteAnswer(i: number){
     (<FormArray>this.form.get('add_answers')).removeAt(i);
+    if((<FormArray>this.form.get('add_answers')).controls.length===0){
+      this.form.controls['add_answers'].updateValueAndValidity();
+    }
   }
 
   onImagePicked(imageData: string | File, isFeatured?: string) {
@@ -175,8 +189,29 @@ export class QuestionComponent implements OnInit {
   }
 
   check(event){
-    if(!event){
+    console.log(event.detail.checked);
+    this.form.get('add_answers').reset();
+  }
+
+  checkPoll(event){
+    if(event.detail.checked){
+      this.form.controls['add_answers'].setValidators(this.checkValidLength.bind(this));
+    }
+    if(!event.detail.checked){
       this.form.get('add_answers').reset();
+      this.form.controls['checkbox'].clearValidators();
+      this.form.controls['add_answers'].clearValidators();
+      this.form.controls['add_answers'].updateValueAndValidity();
+      this.form.controls['checkbox'].updateValueAndValidity();
+    }
+  }
+
+  setValidator(control: FormControl): {[s: string]: boolean} {
+    if(control.value){
+      if((<FormArray>this.form.get('add_answers')).controls.length>=2){
+        return null;
+      }
+      return {'addAnswersFail': true};
     }
   }
 
